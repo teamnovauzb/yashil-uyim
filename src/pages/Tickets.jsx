@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { getTelegramUser, isTelegram, requestPhone } from '../lib/telegram'
+import XButton from '../components/XButton'
 
 const inTelegram = isTelegram()
 
 export default function Tickets() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
-  const navigate = useNavigate()
 
   const tgUser = getTelegramUser()
   const defaultName = tgUser
@@ -65,21 +64,7 @@ export default function Tickets() {
     <div className="py-8 px-4">
       <div className="max-w-xl mx-auto">
 
-        {/* X button — goes to Homepage inside Telegram */}
-        {inTelegram && (
-          <div className="flex justify-end mb-4">
-            <button
-              type="button"
-              onClick={() => {
-                sessionStorage.setItem('tg_visited', 'true')
-                navigate('/')
-              }}
-              className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1B2D1F] text-white hover:bg-[#40916C] transition-colors text-lg font-bold"
-            >
-              ✕
-            </button>
-          </div>
-        )}
+        <XButton />
 
         {/* Header */}
         <div className="text-center mb-8">

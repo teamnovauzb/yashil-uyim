@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import XButton from '../components/XButton'
 
 function formatDate(dateStr) {
   const d = new Date(dateStr)
@@ -68,6 +69,7 @@ export default function News() {
   return (
     <div className="py-12 px-4">
       <div className="max-w-4xl mx-auto">
+        <XButton />
         {/* Header */}
         <div className="text-center mb-10">
           <span className="text-5xl mb-4 block">📰</span>

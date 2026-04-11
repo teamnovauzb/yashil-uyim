@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import XButton from '../components/XButton'
 
 const CATEGORY_LABELS = {
   'suhbat': { label: 'Suhbat', color: 'bg-blue-100 text-blue-700' },
@@ -86,6 +87,7 @@ export default function Program() {
   return (
     <div className="py-12 px-4">
       <div className="max-w-3xl mx-auto">
+        <XButton />
         {/* Header */}
         <div className="text-center mb-10">
           <span className="text-5xl mb-4 block">📋</span>

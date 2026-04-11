@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
+import XButton from '../components/XButton'
 
 export default function Suggestions() {
   const [submitted, setSubmitted] = useState(false)
@@ -42,6 +43,7 @@ export default function Suggestions() {
   return (
     <div className="py-12 px-4">
       <div className="max-w-xl mx-auto">
+        <XButton />
         {/* Header */}
         <div className="text-center mb-10">
           <span className="text-5xl mb-4 block">💡</span>

@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
-import { getTelegramUser, closeMiniApp, isTelegram, requestPhone } from '../lib/telegram'
+import { getTelegramUser, isTelegram, requestPhone } from '../lib/telegram'
+
+const inTelegram = isTelegram()
 
 export default function Tickets() {
   const [submitted, setSubmitted] = useState(false)
@@ -17,7 +19,6 @@ export default function Tickets() {
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors },
     reset,
   } = useForm({
@@ -28,14 +29,13 @@ export default function Tickets() {
     },
   })
 
-  const phoneValue = watch('phone')
-
-  const handleSharePhone = () => {
+  // Auto-request phone when Mini App opens in Telegram
+  useEffect(() => {
+    if (!inTelegram) return
     requestPhone((phone) => {
       setValue('phone', phone, { shouldValidate: true })
-      toast.success('Telefon raqam ulashildi!')
     })
-  }
+  }, [])
 
   const onSubmit = async (data) => {
     setLoading(true)
@@ -47,34 +47,33 @@ export default function Tickets() {
           ticket_count: Number(data.ticket_count),
         },
       ])
-
       if (error) throw error
-
       setSubmitted(true)
       reset()
-      toast.success('Ro\'yxatdan muvaffaqiyatli o\'tdingiz!')
+      toast.success("Ro'yxatdan muvaffaqiyatli o'tdingiz!")
     } catch (err) {
       console.error(err)
-      toast.error('Xatolik yuz berdi. Qayta urinib ko\'ring.')
+      toast.error("Xatolik yuz berdi. Qayta urinib ko'ring.")
     } finally {
       setLoading(false)
     }
   }
 
-  const inTelegram = isTelegram()
-
   return (
     <div className="py-8 px-4">
       <div className="max-w-xl mx-auto">
 
-        {/* Close X button (only in Telegram) */}
+        {/* X Close button — only inside Telegram */}
         {inTelegram && (
           <div className="flex justify-end mb-4">
             <button
               type="button"
-              onClick={() => window.Telegram.WebApp.close()}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                window.Telegram.WebApp.close()
+              }}
               className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1B2D1F] text-white hover:bg-[#40916C] transition-colors text-lg font-bold"
-              aria-label="Yopish"
             >
               ✕
             </button>
@@ -90,7 +89,7 @@ export default function Tickets() {
           </p>
         </div>
 
-        {/* Telegram user info banner */}
+        {/* Telegram info banner */}
         {tgUser && !submitted && (
           <div className="bg-[#D8F3DC] border border-[#B7E4C7] rounded-xl px-4 py-3 mb-6 flex items-center gap-3">
             <span className="text-2xl">👤</span>
@@ -133,7 +132,7 @@ export default function Tickets() {
                 placeholder="Masalan: Akbar Toshmatov"
                 {...register('full_name', {
                   required: 'Ism kiritish majburiy',
-                  minLength: { value: 3, message: 'Ism kamida 3 ta harf bo\'lishi kerak' },
+                  minLength: { value: 3, message: "Ism kamida 3 ta harf bo'lishi kerak" },
                 })}
                 className={`w-full border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#52B788] transition-all ${
                   errors.full_name ? 'border-red-400' : 'border-[#B7E4C7] focus:border-[#52B788]'
@@ -149,38 +148,26 @@ export default function Tickets() {
               <label className="block text-sm font-semibold text-[#1B2D1F] mb-1.5">
                 Tel raqam <span className="text-red-500">*</span>
               </label>
-              <div className="flex gap-2">
-                <input
-                  type="tel"
-                  placeholder="+998 90 123 45 67"
-                  {...register('phone', {
-                    required: 'Telefon raqam kiritish majburiy',
-                    pattern: {
-                      value: /^\+?[0-9\s\-]{9,15}$/,
-                      message: 'Telefon raqami noto\'g\'ri',
-                    },
-                  })}
-                  className={`flex-1 border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#52B788] transition-all ${
-                    errors.phone ? 'border-red-400' : 'border-[#B7E4C7] focus:border-[#52B788]'
-                  }`}
-                />
-                {/* Share phone button - only in Telegram and phone is empty */}
-                {inTelegram && !phoneValue && (
-                  <button
-                    type="button"
-                    onClick={handleSharePhone}
-                    className="flex-shrink-0 bg-[#2D6A4F] text-white text-xs font-medium px-3 py-2 rounded-xl hover:bg-[#40916C] transition-colors"
-                  >
-                    📱 Ulash
-                  </button>
-                )}
-              </div>
+              <input
+                type="tel"
+                placeholder="+998 90 123 45 67"
+                {...register('phone', {
+                  required: 'Telefon raqam kiritish majburiy',
+                  pattern: {
+                    value: /^\+?[0-9\s\-]{9,15}$/,
+                    message: "Telefon raqami noto'g'ri",
+                  },
+                })}
+                className={`w-full border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#52B788] transition-all ${
+                  errors.phone ? 'border-red-400' : 'border-[#B7E4C7] focus:border-[#52B788]'
+                }`}
+              />
               {errors.phone && (
                 <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
               )}
-              {inTelegram && !phoneValue && (
+              {inTelegram && (
                 <p className="text-xs text-[#40916C] mt-1">
-                  "📱 Ulash" tugmasini bosib Telegram raqamingizni ulashing
+                  📱 Telegram telefon raqamingiz avtomatik to'ldirilmoqda...
                 </p>
               )}
             </div>
@@ -211,9 +198,9 @@ export default function Tickets() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#2D6A4F] text-white font-semibold py-3.5 rounded-xl hover:bg-[#40916C] transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-sm mt-2"
+              className="w-full bg-[#2D6A4F] text-white font-semibold py-3.5 rounded-xl hover:bg-[#40916C] transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-sm"
             >
-              {loading ? 'Yuborilmoqda...' : '🎟️ Ro\'yxatdan o\'tish'}
+              {loading ? 'Yuborilmoqda...' : "🎟️ Ro'yxatdan o'tish"}
             </button>
 
             <p className="text-xs text-center text-gray-400">

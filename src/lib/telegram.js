@@ -8,8 +8,10 @@ export function initTelegram() {
   }
 }
 
+// platform is 'unknown' in browser, real value in Telegram (android/ios/tdesktop/weba)
 export function isTelegram() {
-  return !!(window.Telegram?.WebApp)
+  const platform = window.Telegram?.WebApp?.platform
+  return !!platform && platform !== 'unknown'
 }
 
 export function getTelegramUser() {
@@ -17,14 +19,16 @@ export function getTelegramUser() {
 }
 
 export function closeMiniApp() {
-  if (window.Telegram?.WebApp) {
+  try {
     window.Telegram.WebApp.close()
+  } catch (e) {
+    console.log('close error', e)
   }
 }
 
-// Request user phone number via Telegram popup
+// Auto-request phone on mount — shows Telegram share popup
 export function requestPhone(callback) {
-  if (!tg) return
+  if (!tg || !tg.requestContact) return
   tg.requestContact((ok, contact) => {
     if (ok && contact?.contact?.phone_number) {
       const phone = contact.contact.phone_number

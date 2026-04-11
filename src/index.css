@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --color-green-950: #1B2D1F;
+  --color-green-900: #2D6A4F;
+  --color-green-700: #40916C;
+  --color-green-500: #52B788;
+  --color-green-300: #B7E4C7;
+  --color-green-100: #D8F3DC;
+  --color-green-50: #F0FFF4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, 'Segoe UI', sans-serif;
+  background-color: #F0FFF4;
+  color: #1B2D1F;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

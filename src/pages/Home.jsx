@@ -40,7 +40,7 @@ export default function Home() {
       <section className="bg-gradient-to-br from-[#1B4332] via-[#2D6A4F] to-[#40916C] text-white py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-block bg-white/10 backdrop-blur rounded-full px-4 py-1.5 text-sm font-medium mb-6 text-green-200">
-            🌿 15–16 iyun 2025 · Toshkent
+            🌿 Har oy · Toshkent
           </div>
           <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight">
             Yashil Uyim

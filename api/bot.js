@@ -29,7 +29,7 @@ export default async function handler(req, res) {
   if (text === '/start') {
     await sendMessage(
       chatId,
-      `Salom, <b>${firstName}</b>! 👋\n\nBu botda siz <b>Yashil Uyim</b> festivaliga chipta olishingiz mumkin.\n\n🌿 Festival: <b>15–16 iyun 2025, Toshkent</b>\n🎟 Kirish bepul — faqat ro'yxatdan o'ting!`,
+      `Salom, <b>${firstName}</b>! 👋\n\nBu botda siz <b>Yashil Uyim</b> festivaliga chipta olishingiz mumkin.\n\n🌿 Festival: <b>Har oy, Toshkent</b>\n🎟 Kirish bepul — faqat ro'yxatdan o'ting!`,
       {
         inline_keyboard: [
           [

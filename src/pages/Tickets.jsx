@@ -70,7 +70,10 @@ export default function Tickets() {
           <div className="flex justify-end mb-4">
             <button
               type="button"
-              onClick={() => navigate('/')}
+              onClick={() => {
+                sessionStorage.setItem('tg_visited', 'true')
+                navigate('/')
+              }}
               className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1B2D1F] text-white hover:bg-[#40916C] transition-colors text-lg font-bold"
             >
               ✕

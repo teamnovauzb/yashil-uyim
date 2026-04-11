@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -9,9 +9,18 @@ import News from './pages/News'
 import Suggestions from './pages/Suggestions'
 import { isTelegram } from './lib/telegram'
 
-export default function App() {
-  const inTelegram = isTelegram()
+const inTelegram = isTelegram()
 
+function TelegramHome() {
+  // If user came from X button, show homepage. Otherwise redirect to /chipta
+  const visited = sessionStorage.getItem('tg_visited')
+  if (!visited) {
+    return <Navigate to="/chipta" replace />
+  }
+  return <Home />
+}
+
+export default function App() {
   return (
     <BrowserRouter>
       <Toaster
@@ -30,7 +39,10 @@ export default function App() {
       {!inTelegram && <Navbar />}
       <main className="flex-1">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route
+            path="/"
+            element={inTelegram ? <TelegramHome /> : <Home />}
+          />
           <Route path="/chipta" element={<Tickets />} />
           <Route path="/dastur" element={<Program />} />
           <Route path="/yangiliklar" element={<News />} />

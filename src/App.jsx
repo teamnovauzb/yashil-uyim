@@ -27,10 +27,9 @@ function TelegramHome() {
 
 export default function App() {
   const alreadySeen = sessionStorage.getItem('splash_shown')
-  const shouldShowOnboarding = sessionStorage.getItem('show_onboarding')
 
   const [showSplash, setShowSplash] = useState(!alreadySeen)
-  const [showOnboarding, setShowOnboarding] = useState(!!shouldShowOnboarding)
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   function handleSplashDone() {
     sessionStorage.setItem('splash_shown', 'true')
@@ -38,8 +37,6 @@ export default function App() {
   }
 
   function handleOnboardingDone() {
-    localStorage.setItem('onboarding_done', 'true')
-    sessionStorage.removeItem('show_onboarding')
     setShowOnboarding(false)
   }
 
@@ -64,7 +61,7 @@ export default function App() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={inTelegram ? <TelegramHome /> : <Home />} />
-          <Route path="/contact" element={inTelegram ? <ContactShare /> : <Navigate to="/" replace />} />
+          <Route path="/contact" element={inTelegram ? <ContactShare onDone={() => setShowOnboarding(true)} /> : <Navigate to="/" replace />} />
           <Route path="/chipta" element={<Tickets />} />
           <Route path="/dastur" element={<Program />} />
           <Route path="/yangiliklar" element={<News />} />

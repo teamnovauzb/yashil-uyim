@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { requestPhone } from '../lib/telegram'
 
-export default function ContactShare() {
+export default function ContactShare({ onDone }) {
   const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
   const [phone, setPhone] = useState('')
@@ -23,9 +23,7 @@ export default function ContactShare() {
 
   const handleContinue = () => {
     setShowModal(false)
-    if (!localStorage.getItem('onboarding_done')) {
-      sessionStorage.setItem('show_onboarding', 'true')
-    }
+    onDone?.()
     navigate('/')
   }
 

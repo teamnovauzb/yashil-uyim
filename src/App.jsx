@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import SplashScreen from './components/SplashScreen'
 import Home from './pages/Home'
 import Tickets from './pages/Tickets'
 import Program from './pages/Program'
@@ -23,6 +25,14 @@ function TelegramHome() {
 }
 
 export default function App() {
+  const alreadySeen = sessionStorage.getItem('splash_shown')
+  const [showSplash, setShowSplash] = useState(!alreadySeen)
+
+  function handleSplashDone() {
+    sessionStorage.setItem('splash_shown', 'true')
+    setShowSplash(false)
+  }
+
   return (
     <BrowserRouter>
       <Toaster
@@ -38,6 +48,7 @@ export default function App() {
           },
         }}
       />
+      {showSplash && <SplashScreen onDone={handleSplashDone} />}
       {!inTelegram && <Navbar />}
       <main className="flex-1">
         <Routes>

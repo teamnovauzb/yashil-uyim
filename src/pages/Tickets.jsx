@@ -132,17 +132,26 @@ export default function Tickets() {
         <div className="max-w-sm mx-auto">
           <XButton />
 
-          {/* Pending badge */}
-          <div className="flex items-center justify-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-5">
-            <span className="text-xl">⏳</span>
+          {/* Pending banner */}
+          <div className="bg-amber-500 rounded-2xl px-5 py-4 mb-5 flex items-center gap-3 shadow-lg">
+            <div className="text-3xl animate-spin" style={{ animationDuration: '3s' }}>⏳</div>
             <div>
-              <p className="text-sm font-bold text-amber-700">Kutilmoqda</p>
-              <p className="text-xs text-amber-600">Admin tasdiqlashi kutilmoqda — botdan xabar olasiz</p>
+              <p className="font-bold text-white text-base">Kutilmoqda</p>
+              <p className="text-amber-100 text-xs mt-0.5">Admin maqullashi kutilmoqda</p>
             </div>
           </div>
 
-          {/* Ticket card */}
-          <div className="rounded-3xl overflow-hidden shadow-2xl">
+          {/* Ticket card — blurred/watermarked while pending */}
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+
+            {/* PENDING watermark overlay */}
+            <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+              <div className="border-4 border-amber-400 rounded-2xl px-6 py-3 rotate-[-20deg] opacity-60">
+                <p className="text-amber-400 font-black text-2xl tracking-widest uppercase">
+                  Kutilmoqda
+                </p>
+              </div>
+            </div>
 
             {/* Top */}
             <div className="bg-gradient-to-br from-[#1B4332] via-[#2D6A4F] to-[#40916C] px-6 pt-8 pb-6 text-white text-center">
@@ -169,10 +178,10 @@ export default function Tickets() {
               </div>
 
               {[
-                { icon: '👤', label: "To'liq ism",   value: ticketInfo.full_name },
+                { icon: '👤', label: "To'liq ism", value: ticketInfo.full_name },
                 ticketInfo.username && { icon: '✈️', label: 'Telegram', value: `@${ticketInfo.username}` },
-                { icon: '📱', label: 'Telefon',       value: ticketInfo.phone },
-                { icon: '🎫', label: 'Chipta soni',   value: `${ticketInfo.ticket_count} ta` },
+                { icon: '📱', label: 'Telefon',     value: ticketInfo.phone },
+                { icon: '🎫', label: 'Chipta soni', value: `${ticketInfo.ticket_count} ta` },
               ].filter(Boolean).map(({ icon, label, value }) => (
                 <div key={label} className="flex items-center gap-3 bg-[#F0FFF4] rounded-xl px-4 py-3">
                   <span className="text-xl">{icon}</span>
@@ -187,7 +196,7 @@ export default function Tickets() {
               <div className="pt-2">
                 <div className="flex justify-center gap-0.5">
                   {Array.from({ length: 28 }).map((_, i) => (
-                    <div key={i} className="bg-[#2D6A4F] rounded-sm opacity-40"
+                    <div key={i} className="bg-[#2D6A4F] rounded-sm opacity-30"
                       style={{ width: i % 3 === 0 ? '3px' : '2px', height: i % 5 === 0 ? '40px' : '32px' }} />
                   ))}
                 </div>
@@ -198,9 +207,9 @@ export default function Tickets() {
             </div>
 
             {/* Bottom */}
-            <div className="bg-[#D8F3DC] px-6 py-4 text-center">
-              <p className="text-xs text-[#2D6A4F] font-medium">
-                🤖 Admin tasdiqlashi bilanoq botdan chipta keladi
+            <div className="bg-amber-50 border-t border-amber-100 px-6 py-4 text-center">
+              <p className="text-xs text-amber-600 font-medium">
+                🤖 Admin tasdiqlagach botdan chipta keladi
               </p>
             </div>
           </div>

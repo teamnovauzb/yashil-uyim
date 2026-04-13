@@ -11,6 +11,7 @@ import Program from './pages/Program'
 import News from './pages/News'
 import Suggestions from './pages/Suggestions'
 import ContactShare from './pages/ContactShare'
+import Admin from './pages/Admin'
 import { isTelegram } from './lib/telegram'
 
 const inTelegram = isTelegram()
@@ -26,9 +27,10 @@ function TelegramHome() {
 }
 
 export default function App() {
+  const isAdminRoute = window.location.pathname === '/admin'
   const alreadySeen = sessionStorage.getItem('splash_shown')
 
-  const [showSplash, setShowSplash] = useState(!alreadySeen)
+  const [showSplash, setShowSplash] = useState(!alreadySeen && !isAdminRoute)
   const [showOnboarding, setShowOnboarding] = useState(false)
 
   function handleSplashDone() {
@@ -66,6 +68,7 @@ export default function App() {
           <Route path="/dastur" element={<Program />} />
           <Route path="/yangiliklar" element={<News />} />
           <Route path="/taklif" element={<Suggestions />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
       </main>
       {!inTelegram && <Footer />}

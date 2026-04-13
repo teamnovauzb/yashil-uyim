@@ -1,46 +1,59 @@
 const BOT_TOKEN = process.env.BOT_TOKEN
 const ADMIN_ID = '5803735374'
 
-async function sendMessage(chatId, text) {
-  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+async function sendPhoto(chatId, photoUrl, caption, replyMarkup) {
+  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       chat_id: chatId,
-      text,
+      photo: photoUrl,
+      caption,
       parse_mode: 'HTML',
+      reply_markup: replyMarkup,
     }),
+  })
+}
+
+async function sendMessage(chatId, text) {
+  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
   })
 }
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false })
 
-  const { chatId, full_name, username, phone, ticket_count } = req.body || {}
+  const { chatId, username, full_name, phone, ticket_count, ticket_number, receipt_url } = req.body || {}
 
-  const userMsg =
-    `🎟 <b>Tabriklaymiz! Chiptangiz tayyor!</b>\n\n` +
-    `👤 Ism: <b>${full_name}</b>\n` +
-    `${username ? `🆔 Username: @${username}\n` : ''}` +
-    `📱 Telefon: <b>${phone}</b>\n` +
-    `🎫 Chipta soni: <b>${ticket_count}</b>\n\n` +
-    `🌿 <b>Yashil Uyim Ekologik Festival</b>\n` +
-    `📅 25-aprel · Toshkent\n\n` +
-    `Festival kunida shu xabarni ko'rsating!`
-
-  const adminMsg =
-    `📋 <b>Yangi chipta ro'yxatdan o'tdi!</b>\n\n` +
+  const caption =
+    `📋 <b>Yangi chipta so'rovi!</b>\n\n` +
     `👤 Ism: <b>${full_name}</b>\n` +
     `${username ? `🆔 @${username}\n` : ''}` +
     `📱 Telefon: <b>${phone}</b>\n` +
     `🎫 Chipta soni: <b>${ticket_count}</b>\n` +
-    `${chatId ? `🆔 Chat ID: <code>${chatId}</code>` : ''}`
+    `🔢 Chipta №: <b>#${ticket_number}</b>\n` +
+    `${chatId ? `💬 Chat ID: <code>${chatId}</code>` : ''}`
+
+  // callback_data: "approve|chatId|ticketNum" (max 64 chars)
+  const approveData = `approve|${chatId}|${ticket_number}`
+  const rejectData  = `reject|${chatId}|${ticket_number}`
 
   try {
-    if (chatId) await sendMessage(chatId, userMsg)
-    await sendMessage(ADMIN_ID, adminMsg)
+    if (receipt_url) {
+      await sendPhoto(ADMIN_ID, receipt_url, caption, {
+        inline_keyboard: [[
+          { text: '✅ Tasdiqlash', callback_data: approveData },
+          { text: '❌ Rad etish',  callback_data: rejectData  },
+        ]],
+      })
+    } else {
+      await sendMessage(ADMIN_ID, caption)
+    }
   } catch (e) {
-    console.error('Telegram notify error:', e)
+    console.error('notify error:', e)
   }
 
   return res.status(200).json({ ok: true })

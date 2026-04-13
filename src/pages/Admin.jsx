@@ -1,11 +1,18 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
+import { getTelegramUser } from '../lib/telegram'
 
 const ADMIN_PASSWORD = 'yashil2026'
+const ADMIN_ID = 5803735374
 
 export default function Admin() {
-  const [authed, setAuthed]     = useState(() => sessionStorage.getItem('admin_auth') === 'true')
+  const tgUser = getTelegramUser()
+  const isTgAdmin = tgUser?.id === ADMIN_ID
+
+  const [authed, setAuthed] = useState(
+    () => isTgAdmin || sessionStorage.getItem('admin_auth') === 'true'
+  )
   const [password, setPassword] = useState('')
   const [tickets, setTickets]   = useState([])
   const [loading, setLoading]   = useState(false)

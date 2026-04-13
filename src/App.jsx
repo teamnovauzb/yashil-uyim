@@ -12,17 +12,23 @@ import News from './pages/News'
 import Suggestions from './pages/Suggestions'
 import ContactShare from './pages/ContactShare'
 import Admin from './pages/Admin'
-import { isTelegram } from './lib/telegram'
+import { isTelegram, getTelegramUser } from './lib/telegram'
 
 const inTelegram = isTelegram()
+const ADMIN_ID = 5803735374
 
 function TelegramHome() {
+  const tgUser = getTelegramUser()
+
+  // Admin ID → go straight to admin panel
+  if (tgUser?.id === ADMIN_ID) {
+    return <Navigate to="/admin" replace />
+  }
+
   const contacted = sessionStorage.getItem('tg_contacted')
-  // First time: show contact share screen
   if (!contacted) {
     return <Navigate to="/contact" replace />
   }
-  // After sharing: show homepage
   return <Home />
 }
 

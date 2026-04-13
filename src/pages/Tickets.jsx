@@ -8,20 +8,18 @@ import XButton from '../components/XButton'
 const inTelegram = isTelegram()
 
 export default function Tickets() {
-  const [submitted, setSubmitted] = useState(false)
+  const [ticket, setTicket] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const tgUser = getTelegramUser()
   const defaultName = tgUser
     ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ')
     : ''
-  // Use phone saved from ContactShare page
   const savedPhone = sessionStorage.getItem('tg_phone') || ''
 
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
     reset,
   } = useForm({
@@ -31,7 +29,6 @@ export default function Tickets() {
       ticket_count: 1,
     },
   })
-
 
   const onSubmit = async (data) => {
     setLoading(true)
@@ -44,8 +41,32 @@ export default function Tickets() {
         },
       ])
       if (error) throw error
-      setSubmitted(true)
+
+      // Save ticket info for display
+      const ticketData = {
+        full_name: data.full_name,
+        username: tgUser?.username || null,
+        phone: data.phone,
+        ticket_count: Number(data.ticket_count),
+        number: Math.floor(10000 + Math.random() * 90000),
+      }
+      setTicket(ticketData)
       reset()
+
+      // Notify user and admin via bot
+      try {
+        await fetch('/api/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chatId: tgUser?.id || null,
+            ...ticketData,
+          }),
+        })
+      } catch (e) {
+        // Notification failure is non-critical
+      }
+
       toast.success("Ro'yxatdan muvaffaqiyatli o'tdingiz!")
     } catch (err) {
       console.error(err)
@@ -55,50 +76,152 @@ export default function Tickets() {
     }
   }
 
-  return (
-    <div className="py-8 px-4">
-      <div className="max-w-xl mx-auto">
+  if (ticket) {
+    return (
+      <div className="min-h-screen bg-[#F0FFF4] py-8 px-4">
+        <div className="max-w-sm mx-auto">
+          <XButton />
 
-        <XButton />
-
-        {/* Header */}
-        <div className="text-center mb-8">
-          <span className="text-5xl mb-4 block">🎟️</span>
-          <h1 className="text-3xl font-bold text-[#1B2D1F] mb-2">Chipta olish</h1>
-          <p className="text-[#40916C]">
-            Festival bepul. Faqat ro'yxatdan o'tish talab etiladi. Joylar cheklangan!
+          <p className="text-center text-[#40916C] text-sm mb-6 mt-2">
+            Chipta botga ham yuborildi ✅
           </p>
-        </div>
 
-        {/* Telegram info banner */}
-        {tgUser && !submitted && (
-          <div className="bg-[#D8F3DC] border border-[#B7E4C7] rounded-xl px-4 py-3 mb-6 flex items-center gap-3">
-            <span className="text-2xl">👤</span>
-            <div>
-              <p className="text-sm font-semibold text-[#1B2D1F]">
-                Telegram ma'lumotlari avtomatik to'ldirildi
+          {/* Ticket card */}
+          <div className="rounded-3xl overflow-hidden shadow-2xl">
+
+            {/* Top section */}
+            <div className="bg-gradient-to-br from-[#1B4332] via-[#2D6A4F] to-[#40916C] px-6 pt-8 pb-6 text-white text-center">
+              <div className="text-5xl mb-3">🌿</div>
+              <h1 className="text-2xl font-bold tracking-tight">Yashil Uyim</h1>
+              <p className="text-green-200 text-sm">Ekologik Festival</p>
+              <div className="mt-4 inline-block bg-white/20 rounded-full px-4 py-1.5 text-sm font-semibold">
+                25-aprel · Toshkent
+              </div>
+            </div>
+
+            {/* Dashed divider */}
+            <div className="bg-white flex items-center gap-0">
+              <div className="w-5 h-5 rounded-full bg-[#F0FFF4] -ml-2.5 flex-shrink-0" />
+              <div className="flex-1 border-t-2 border-dashed border-[#B7E4C7]" />
+              <div className="w-5 h-5 rounded-full bg-[#F0FFF4] -mr-2.5 flex-shrink-0" />
+            </div>
+
+            {/* Info section */}
+            <div className="bg-white px-6 py-6 space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-400 uppercase tracking-widest">Chipta №</span>
+                <span className="font-bold text-[#2D6A4F] text-lg">#{ticket.number}</span>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 bg-[#F0FFF4] rounded-xl px-4 py-3">
+                  <span className="text-xl">👤</span>
+                  <div>
+                    <p className="text-xs text-gray-400">To'liq ism</p>
+                    <p className="font-semibold text-[#1B2D1F]">{ticket.full_name}</p>
+                  </div>
+                </div>
+
+                {ticket.username && (
+                  <div className="flex items-center gap-3 bg-[#F0FFF4] rounded-xl px-4 py-3">
+                    <span className="text-xl">✈️</span>
+                    <div>
+                      <p className="text-xs text-gray-400">Telegram</p>
+                      <p className="font-semibold text-[#1B2D1F]">@{ticket.username}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3 bg-[#F0FFF4] rounded-xl px-4 py-3">
+                  <span className="text-xl">📱</span>
+                  <div>
+                    <p className="text-xs text-gray-400">Telefon</p>
+                    <p className="font-semibold text-[#1B2D1F]">{ticket.phone}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 bg-[#F0FFF4] rounded-xl px-4 py-3">
+                  <span className="text-xl">🎫</span>
+                  <div>
+                    <p className="text-xs text-gray-400">Chipta soni</p>
+                    <p className="font-semibold text-[#1B2D1F]">{ticket.ticket_count} ta</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Barcode decoration */}
+              <div className="pt-2">
+                <div className="flex justify-center gap-0.5">
+                  {Array.from({ length: 28 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="bg-[#2D6A4F] rounded-sm"
+                      style={{
+                        width: i % 3 === 0 ? '3px' : '2px',
+                        height: i % 5 === 0 ? '40px' : '32px',
+                      }}
+                    />
+                  ))}
+                </div>
+                <p className="text-center text-xs text-gray-300 mt-2">
+                  #{ticket.number}-YASHIL-UYIM-2026
+                </p>
+              </div>
+            </div>
+
+            {/* Bottom */}
+            <div className="bg-[#D8F3DC] px-6 py-4 text-center">
+              <p className="text-xs text-[#2D6A4F] font-medium">
+                Festival kunida shu chiptani ko'rsating 🌿
               </p>
-              <p className="text-xs text-[#40916C]">Kerak bo'lsa tahrirlashingiz mumkin</p>
             </div>
           </div>
-        )}
 
-        {submitted ? (
-          <div className="bg-green-50 border border-[#52B788] rounded-2xl p-8 text-center">
-            <div className="text-5xl mb-4">✅</div>
-            <h2 className="text-xl font-bold text-[#2D6A4F] mb-2">Tabriklaymiz!</h2>
-            <p className="text-[#40916C] mb-6">
-              Siz muvaffaqiyatli ro'yxatdan o'tdingiz. Festival kunida sizni kutib qolamiz!
-            </p>
-            <button
-              type="button"
-              onClick={() => setSubmitted(false)}
-              className="bg-[#2D6A4F] text-white px-6 py-2 rounded-lg hover:bg-[#40916C] transition-colors font-medium"
-            >
-              Yana ro'yxatdan o'tish
-            </button>
+          <button
+            onClick={() => setTicket(null)}
+            className="w-full mt-6 border-2 border-[#2D6A4F] text-[#2D6A4F] font-semibold py-3 rounded-xl hover:bg-[#D8F3DC] transition-colors text-sm"
+          >
+            Yana ro'yxatdan o'tish
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="pb-8">
+      <div className="max-w-xl mx-auto">
+
+        {/* Hero banner */}
+        <div className="relative h-52 overflow-hidden">
+          <img
+            src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80"
+            alt="Festival"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/60" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
+            <XButton />
+            <span className="text-4xl mb-2">🎟️</span>
+            <h1 className="text-2xl font-bold">Chipta olish</h1>
+            <p className="text-green-200 text-sm mt-1">25-aprel · Toshkent · Bepul</p>
           </div>
-        ) : (
+        </div>
+
+        <div className="px-4 pt-6">
+          {/* Telegram info banner */}
+          {tgUser && (
+            <div className="bg-[#D8F3DC] border border-[#B7E4C7] rounded-xl px-4 py-3 mb-5 flex items-center gap-3">
+              <span className="text-2xl">👤</span>
+              <div>
+                <p className="text-sm font-semibold text-[#1B2D1F]">
+                  Telegram ma'lumotlari avtomatik to'ldirildi
+                </p>
+                <p className="text-xs text-[#40916C]">Kerak bo'lsa tahrirlashingiz mumkin</p>
+              </div>
+            </div>
+          )}
+
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="bg-white rounded-2xl shadow-sm border border-[#B7E4C7] p-6 space-y-5"
@@ -146,11 +269,6 @@ export default function Tickets() {
               {errors.phone && (
                 <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
               )}
-              {inTelegram && (
-                <p className="text-xs text-[#40916C] mt-1">
-                  📱 Telegram telefon raqamingiz avtomatik to'ldirilmoqda...
-                </p>
-              )}
             </div>
 
             {/* Chipta soni */}
@@ -181,14 +299,14 @@ export default function Tickets() {
               disabled={loading}
               className="w-full bg-[#2D6A4F] text-white font-semibold py-3.5 rounded-xl hover:bg-[#40916C] transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-sm"
             >
-              {loading ? 'Yuborilmoqda...' : "🎟️ Ro'yxatdan o'tish"}
+              {loading ? 'Yuborilmoqda...' : "🎟️ Chipta olish"}
             </button>
 
             <p className="text-xs text-center text-gray-400">
               Ma'lumotlaringiz faqat festival maqsadida ishlatiladi
             </p>
           </form>
-        )}
+        </div>
       </div>
     </div>
   )

@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
+import { getSetting } from '../lib/settings'
 
-const FESTIVAL_DATE = new Date('2025-06-15T09:00:00')
+const FALLBACK_DATE = '2026-04-25T09:00:00'
 
-function getTimeLeft() {
+function getTimeLeft(target) {
   const now = new Date()
-  const diff = FESTIVAL_DATE - now
-
+  const diff = target - now
   if (diff <= 0) return null
-
   return {
     days: Math.floor(diff / (1000 * 60 * 60 * 24)),
     hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
@@ -30,21 +29,29 @@ function Pad({ value, label }) {
 }
 
 export default function CountdownTimer() {
-  const [timeLeft, setTimeLeft] = useState(getTimeLeft())
+  const [target, setTarget] = useState(() => new Date(FALLBACK_DATE))
+  const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(new Date(FALLBACK_DATE)))
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(getTimeLeft())
-    }, 1000)
-    return () => clearInterval(timer)
+    let cancelled = false
+    getSetting('festival_date', FALLBACK_DATE).then((v) => {
+      if (cancelled) return
+      const d = new Date(v)
+      if (!isNaN(d)) {
+        setTarget(d)
+        setTimeLeft(getTimeLeft(d))
+      }
+    })
+    return () => { cancelled = true }
   }, [])
 
+  useEffect(() => {
+    const timer = setInterval(() => setTimeLeft(getTimeLeft(target)), 1000)
+    return () => clearInterval(timer)
+  }, [target])
+
   if (!timeLeft) {
-    return (
-      <p className="text-white text-xl font-semibold">
-        🎉 Festival boshlandi!
-      </p>
-    )
+    return <p className="text-white text-xl font-semibold">🎉 Festival boshlandi!</p>
   }
 
   return (

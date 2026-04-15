@@ -3,12 +3,12 @@ import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
-import { getTelegramUser, isTelegram } from '../lib/telegram'
+import { getTelegramUser } from '../lib/telegram'
+import { getCachedPhone } from '../lib/contact'
+import { getSetting } from '../lib/settings'
+import { Paperclip, Image as ImageIcon, Send, ArrowLeft } from 'lucide-react'
 import XButton from '../components/XButton'
 
-const inTelegram = isTelegram()
-const CARD_NUMBER = '9999 9999 9999 9999'
-const PRICE_PER_TICKET = 10000 // so'm
 
 export default function Tickets() {
   const [step, setStep] = useState(0)   // 0=form 1=payment 2=upload 3=pending 4=approved 5=fake
@@ -18,13 +18,32 @@ export default function Tickets() {
   const [receipt, setReceipt] = useState(null)
   const [preview, setPreview] = useState(null)
   const [ticketInfo, setTicketInfo] = useState(null)
+  const [venue, setVenue] = useState({ date: '', address: 'Toshkent' })
+  const [payment, setPayment] = useState({ card: '9999 9999 9999 9999', holder: '', price: 10000 })
   const fileRef = useRef()
+
+  useEffect(() => {
+    Promise.all([
+      getSetting('festival_date', '2026-04-25T09:00:00'),
+      getSetting('festival_address', 'Toshkent'),
+      getSetting('payment_card', '9999 9999 9999 9999'),
+      getSetting('payment_card_holder', ''),
+      getSetting('ticket_price', '10000'),
+    ]).then(([date, address, card, holder, price]) => {
+      setVenue({ date, address })
+      setPayment({ card, holder, price: Number(price) || 10000 })
+    })
+  }, [])
+
+  const venueLabel = venue.date
+    ? `${new Date(venue.date).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long' })} · ${venue.address}`
+    : venue.address
 
   const tgUser = getTelegramUser()
   const defaultName = tgUser
     ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ')
     : ''
-  const savedPhone = sessionStorage.getItem('tg_phone') || ''
+  const savedPhone = getCachedPhone(tgUser)
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: { full_name: defaultName, phone: savedPhone, ticket_count: 1 },
@@ -38,7 +57,7 @@ export default function Tickets() {
 
   // Copy card number
   const copyCard = () => {
-    navigator.clipboard.writeText(CARD_NUMBER.replace(/\s/g, ''))
+    navigator.clipboard.writeText(payment.card.replace(/\s/g, ''))
     toast.success('Karta raqami nusxalandi!')
   }
 
@@ -78,26 +97,23 @@ export default function Tickets() {
         if (dbErr) throw dbErr
       }
 
-      // 2. Upload receipt to Supabase Storage (non-critical)
+      // 2. Upload receipt to Supabase Storage
       let receiptUrl = null
-      try {
-        const ext = receipt.name.split('.').pop()
-        const filename = `receipt_${ticketNum}.${ext}`
-        const { error: storageErr } = await supabase.storage
-          .from('receipts')
-          .upload(filename, receipt, { contentType: receipt.type })
-        if (!storageErr) {
-          const { data: urlData } = supabase.storage
-            .from('receipts')
-            .getPublicUrl(filename)
-          receiptUrl = urlData.publicUrl
-          // Save receipt_url to DB
-          await supabase.from('tickets')
-            .update({ receipt_url: receiptUrl })
-            .eq('ticket_number', ticketNum)
-        }
-      } catch (_) {
-        // Storage not set up yet — continue without photo
+      const ext = (receipt.name.split('.').pop() || 'jpg').toLowerCase()
+      const filename = `receipt_${ticketNum}_${Date.now()}.${ext}`
+      const { error: storageErr } = await supabase.storage
+        .from('receipts')
+        .upload(filename, receipt, { contentType: receipt.type, upsert: true })
+      if (storageErr) {
+        console.error('Receipt upload failed:', storageErr)
+        toast.error('Chek yuklanmadi: ' + storageErr.message)
+      } else {
+        const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(filename)
+        receiptUrl = urlData.publicUrl
+        const { error: updErr } = await supabase.from('tickets')
+          .update({ receipt_url: receiptUrl })
+          .eq('ticket_number', ticketNum)
+        if (updErr) console.error('receipt_url update failed:', updErr)
       }
 
       // 3. Notify admin via bot
@@ -210,7 +226,7 @@ export default function Tickets() {
               <h1 className="text-2xl font-bold tracking-tight">Yashil Uyim</h1>
               <p className="text-green-200 text-sm">Ekologik Festival</p>
               <div className="mt-4 inline-block bg-white/20 rounded-full px-4 py-1.5 text-sm font-semibold">
-                25-aprel · Toshkent
+                {venueLabel}
               </div>
             </div>
 
@@ -277,7 +293,9 @@ export default function Tickets() {
           <XButton />
 
           <div className="text-center mb-6">
-            <div className="text-4xl mb-2">📎</div>
+            <div className="w-14 h-14 rounded-2xl bg-[#D8F3DC] text-[#2D6A4F] flex items-center justify-center mx-auto mb-3">
+              <Paperclip size={24} strokeWidth={2.2} />
+            </div>
             <h2 className="text-2xl font-bold text-[#1B2D1F]">Chekni yuklang</h2>
             <p className="text-[#40916C] text-sm mt-1">To'lov cheki yoki skrinshot</p>
           </div>
@@ -290,7 +308,9 @@ export default function Tickets() {
               <img src={preview} alt="Chek" className="w-full max-h-64 object-contain rounded-xl" />
             ) : (
               <>
-                <div className="text-5xl mb-3">🖼️</div>
+                <div className="w-14 h-14 rounded-xl bg-[#F0FFF4] border border-[#B7E4C7] flex items-center justify-center mx-auto mb-3 text-[#2D6A4F]">
+                  <ImageIcon size={24} strokeWidth={1.8} />
+                </div>
                 <p className="text-[#2D6A4F] font-semibold">Rasmni yuklash</p>
                 <p className="text-gray-400 text-xs mt-1">JPG, PNG · max 5MB</p>
               </>
@@ -316,13 +336,14 @@ export default function Tickets() {
           <button
             onClick={onUploadSubmit}
             disabled={loading || !receipt}
-            className="w-full bg-[#2D6A4F] text-white font-bold py-4 rounded-2xl hover:bg-[#40916C] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 bg-[#2D6A4F] text-white font-bold py-4 rounded-2xl hover:bg-[#40916C] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Yuklanmoqda...' : '📤 Yuborish'}
+            <Send size={18} />
+            {loading ? 'Yuklanmoqda...' : 'Yuborish'}
           </button>
 
-          <button onClick={() => setStep(1)} className="w-full text-sm text-gray-400 mt-3">
-            ← Orqaga
+          <button onClick={() => setStep(1)} className="w-full flex items-center justify-center gap-1.5 text-sm text-gray-400 mt-3">
+            <ArrowLeft size={14} /> Orqaga
           </button>
         </div>
       </div>
@@ -331,7 +352,7 @@ export default function Tickets() {
 
   // ── STEP 1: Payment info ─────────────────────────────────────
   if (step === 1) {
-    const total = (formData?.ticket_count || 1) * PRICE_PER_TICKET
+    const total = (formData?.ticket_count || 1) * payment.price
     return (
       <div className="min-h-screen bg-[#F0FFF4] py-8 px-4">
         <div className="max-w-sm mx-auto">
@@ -345,7 +366,10 @@ export default function Tickets() {
           {/* Card */}
           <div className="bg-gradient-to-br from-[#1B4332] via-[#2D6A4F] to-[#40916C] rounded-3xl p-6 mb-5 text-white shadow-xl">
             <p className="text-green-300 text-xs uppercase tracking-widest mb-4">Karta raqami</p>
-            <p className="text-2xl font-bold tracking-widest mb-6">{CARD_NUMBER}</p>
+            <p className="text-2xl font-bold tracking-widest mb-2">{payment.card}</p>
+            {payment.holder && (
+              <p className="text-green-200 text-sm uppercase tracking-wider mb-4">{payment.holder}</p>
+            )}
             <div className="flex justify-between items-end">
               <div>
                 <p className="text-green-300 text-xs">Summa</p>
@@ -407,7 +431,7 @@ export default function Tickets() {
             <XButton />
             <span className="text-4xl mb-2">🎟️</span>
             <h1 className="text-2xl font-bold">Chipta olish</h1>
-            <p className="text-green-200 text-sm mt-1">25-aprel · Toshkent</p>
+            <p className="text-green-200 text-sm mt-1">{venueLabel}</p>
           </div>
         </div>
 
@@ -479,7 +503,7 @@ export default function Tickets() {
                 ))}
               </div>
               <p className="text-xs text-gray-400 mt-1">
-                Har bir chipta: {PRICE_PER_TICKET.toLocaleString()} so'm
+                Har bir chipta: {payment.price.toLocaleString()} so'm
               </p>
             </div>
 

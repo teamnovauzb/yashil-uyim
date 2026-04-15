@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Ticket, CalendarDays, Newspaper, Lightbulb, Camera, Leaf, MapPin, ExternalLink } from 'lucide-react'
 import CountdownTimer from '../components/CountdownTimer'
 import XButton from '../components/XButton'
-import { isTelegram } from '../lib/telegram'
+import { isTelegram, openExternal } from '../lib/telegram'
+import { getSetting } from '../lib/settings'
+import { useT } from '../lib/prefs'
 
 const instagramPosts = [
   {
@@ -31,35 +34,11 @@ const instagramPosts = [
   },
 ]
 
-const features = [
-  {
-    icon: '🎟️',
-    title: 'Chipta olish',
-    desc: 'Festival uchun bepul ro\'yxatdan o\'ting. Joylar cheklangan!',
-    to: '/chipta',
-    btn: 'Ro\'yxatdan o\'tish',
-  },
-  {
-    icon: '📋',
-    title: 'Festival dasturi',
-    desc: 'Ma\'ruzalar, master-klasslar, konsertlar va ko\'rgazmalar jadvali.',
-    to: '/dastur',
-    btn: 'Dasturni ko\'rish',
-  },
-  {
-    icon: '📰',
-    title: 'Yangiliklar',
-    desc: 'Festival haqidagi so\'nggi yangiliklar va e\'lonlar.',
-    to: '/yangiliklar',
-    btn: 'Yangiliklar',
-  },
-  {
-    icon: '💡',
-    title: 'Taklif yuborish',
-    desc: 'Festival tashkilotchilariga g\'oya va takliflaringizni yuboring.',
-    to: '/taklif',
-    btn: 'Taklif yuborish',
-  },
+const featureDefs = [
+  { Icon: Ticket,     titleKey: 'featTicket',     descKey: 'featTicketDesc',     to: '/chipta',      btnKey: 'featRegister' },
+  { Icon: CalendarDays, titleKey: 'featProgram', descKey: 'featProgramDesc',    to: '/dastur',      btnKey: 'viewProgram' },
+  { Icon: Newspaper,  titleKey: 'featNews',       descKey: 'featNewsDesc',       to: '/yangiliklar', btnKey: 'featNews' },
+  { Icon: Lightbulb,  titleKey: 'featSuggestion', descKey: 'featSuggestionDesc', to: '/taklif',      btnKey: 'sendSuggestion' },
 ]
 
 function useCountdownTo(targetDate) {
@@ -86,9 +65,24 @@ function useCountdownTo(targetDate) {
 
 export default function Home() {
   const [showPopup, setShowPopup] = useState(false)
+  const [venue, setVenue] = useState({ address: '', lat: '', lng: '' })
+  const [festivalDate, setFestivalDate] = useState('2026-04-25T09:00:00')
   const navigate = useNavigate()
   const inTelegram = isTelegram()
-  const countdown = useCountdownTo('2026-04-25T00:00:00')
+  const countdown = useCountdownTo(festivalDate)
+  const t = useT()
+
+  useEffect(() => {
+    Promise.all([
+      getSetting('festival_address', 'Toshkent'),
+      getSetting('festival_lat', ''),
+      getSetting('festival_lng', ''),
+      getSetting('festival_date', '2026-04-25T09:00:00'),
+    ]).then(([address, lat, lng, date]) => {
+      setVenue({ address, lat, lng })
+      if (date) setFestivalDate(date)
+    })
+  }, [])
 
   useEffect(() => {
     if (!inTelegram) return
@@ -115,7 +109,7 @@ export default function Home() {
               Bizda yangi festival bor!
             </h2>
             <p className="text-[#40916C] text-sm mb-4">
-              25-aprel — festivalgacha qoldi:
+              {new Date(festivalDate).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long' })} — festivalgacha qoldi:
             </p>
 
             {/* Live countdown */}
@@ -156,14 +150,14 @@ export default function Home() {
       {/* Hero */}
       <section className="bg-gradient-to-br from-[#1B4332] via-[#2D6A4F] to-[#40916C] text-white py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-block bg-white/10 backdrop-blur rounded-full px-4 py-1.5 text-sm font-medium mb-6 text-green-200">
-            🌿 Har oy · Toshkent
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-4 py-1.5 text-sm font-medium mb-6 text-green-200">
+            <Leaf size={14} /> {t('monthlyTashkent')}
           </div>
           <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight">
-            Yashil Uyim
+            {t('appName')}
           </h1>
           <p className="text-xl md:text-2xl text-green-200 mb-2 font-light">
-            Ekologik Festival
+            {t('tagline')}
           </p>
           <p className="text-green-300 mb-10 max-w-xl mx-auto leading-relaxed">
             Tabiat bilan uyg'unlikda yashaymiz. Ekologiya, barqaror turmush tarzi
@@ -172,7 +166,7 @@ export default function Home() {
 
           <div className="mb-10">
             <p className="text-green-300 text-sm mb-4 uppercase tracking-widest font-medium">
-              Festivalgacha qoldi
+              {t('festivalIn')}
             </p>
             <CountdownTimer />
           </div>
@@ -180,15 +174,15 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/chipta"
-              className="bg-white text-[#2D6A4F] font-semibold px-8 py-3 rounded-full hover:bg-green-100 transition-colors shadow-lg"
+              className="inline-flex items-center justify-center gap-2 bg-white text-[#2D6A4F] font-semibold px-8 py-3 rounded-full hover:bg-green-100 transition-colors shadow-lg"
             >
-              🎟️ Chipta olish
+              <Ticket size={18} /> {t('buyTicket')}
             </Link>
             <Link
               to="/dastur"
-              className="border-2 border-white text-white font-semibold px-8 py-3 rounded-full hover:bg-white/10 transition-colors"
+              className="inline-flex items-center justify-center gap-2 border-2 border-white text-white font-semibold px-8 py-3 rounded-full hover:bg-white/10 transition-colors"
             >
-              📋 Dasturni ko'rish
+              <CalendarDays size={18} /> {t('viewProgram')}
             </Link>
           </div>
         </div>
@@ -198,26 +192,28 @@ export default function Home() {
       <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B2D1F] mb-2">
-            Festivalda nima bo'ladi?
+            {t('whatAtFestival')}
           </h2>
           <p className="text-center text-[#40916C] mb-10">
-            Barcha yosh va qiziqishlar uchun dastur tayyorlandi
+            {t('forAllAges')}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map(f => (
+            {featureDefs.map(f => (
               <div
                 key={f.to}
                 className="bg-white rounded-2xl p-6 shadow-sm border border-[#B7E4C7] hover:shadow-md hover:-translate-y-1 transition-all duration-200 flex flex-col"
               >
-                <div className="text-4xl mb-3">{f.icon}</div>
-                <h3 className="text-lg font-bold text-[#1B2D1F] mb-2">{f.title}</h3>
-                <p className="text-sm text-gray-500 mb-4 flex-1 leading-relaxed">{f.desc}</p>
+                <div className="w-12 h-12 rounded-xl bg-[#D8F3DC] flex items-center justify-center mb-3 text-[#2D6A4F]">
+                  <f.Icon size={24} strokeWidth={2} />
+                </div>
+                <h3 className="text-lg font-bold text-[#1B2D1F] mb-2">{t(f.titleKey)}</h3>
+                <p className="text-sm text-gray-500 mb-4 flex-1 leading-relaxed">{t(f.descKey)}</p>
                 <Link
                   to={f.to}
                   className="block text-center bg-[#2D6A4F] text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-[#40916C] transition-colors"
                 >
-                  {f.btn}
+                  {t(f.btnKey)}
                 </Link>
               </div>
             ))}
@@ -230,15 +226,13 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 mb-3">
-              <svg className="w-6 h-6 text-[#2D6A4F]" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
-              </svg>
+              <Camera size={22} className="text-[#2D6A4F]" />
               <span className="text-sm font-semibold text-[#2D6A4F] tracking-widest uppercase">@yashil_uyim</span>
             </div>
             <h2 className="text-2xl md:text-3xl font-bold text-[#1B2D1F] mb-2">
-              Bizning Instagram
+              {t('instagramOurs')}
             </h2>
-            <p className="text-[#40916C]">Festival lahzalari va yangiliklar</p>
+            <p className="text-[#40916C]">{t('festivalMoments')}</p>
           </div>
 
           {/* Photo grid */}
@@ -273,21 +267,62 @@ export default function Home() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] text-white px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity shadow-lg"
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
-              </svg>
-              Kuzatib boring
+              <Camera size={18} />
+              {t('followUs')}
             </a>
           </div>
         </div>
       </section>
 
+      {/* Location */}
+      {venue.address && (
+        <section className="py-12 px-4 bg-white">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center gap-2 bg-[#D8F3DC] text-[#2D6A4F] rounded-full px-4 py-1.5 text-xs font-semibold mb-3">
+                <MapPin size={14} /> {t('eventLocation')}
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold text-[#1B2D1F] mb-2">
+                {t('whereIsIt')}
+              </h2>
+              <p className="text-[#40916C] text-sm">{venue.address}</p>
+            </div>
+
+            {venue.lat && venue.lng && (
+              <div className="rounded-2xl overflow-hidden border border-[#B7E4C7] shadow-sm mb-4">
+                <iframe
+                  title="Festival location"
+                  className="w-full h-64"
+                  loading="lazy"
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${+venue.lng - 0.01},${+venue.lat - 0.005},${+venue.lng + 0.01},${+venue.lat + 0.005}&layer=mapnik&marker=${venue.lat},${venue.lng}`}
+                />
+              </div>
+            )}
+
+            <div className="flex justify-center">
+              <button
+                onClick={() => openExternal(
+                  venue.lat && venue.lng
+                    ? `https://www.google.com/maps/search/?api=1&query=${venue.lat},${venue.lng}`
+                    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.address)}`
+                )}
+                className="inline-flex items-center gap-2 bg-[#2D6A4F] text-white px-6 py-3 rounded-full font-medium hover:bg-[#40916C] transition-colors shadow-sm"
+              >
+                <ExternalLink size={16} /> {t('openInMaps')}
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* About */}
       <section className="bg-[#D8F3DC] py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <span className="text-4xl mb-4 block">🌱</span>
+          <div className="w-14 h-14 rounded-2xl bg-[#2D6A4F] text-white flex items-center justify-center mx-auto mb-4">
+            <Leaf size={26} />
+          </div>
           <h2 className="text-2xl md:text-3xl font-bold text-[#1B2D1F] mb-4">
-            Yashil Uyim haqida
+            {t('aboutUs')}
           </h2>
           <p className="text-[#2D6A4F] leading-relaxed mb-6">
             Yashil Uyim — ekologiya, barqaror rivojlanish va tabiatga mehr mavzularida

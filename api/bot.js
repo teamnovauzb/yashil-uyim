@@ -1,7 +1,19 @@
 const BOT_TOKEN = process.env.BOT_TOKEN
-const APP_URL = 'https://yashil-uyim.vercel.app'
+const APP_URL = 'https://yashiluyim.vercel.app'
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY
+
+async function getSetting(key, fallback = '') {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/settings?key=eq.${encodeURIComponent(key)}&select=value`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+    })
+    const data = await res.json()
+    return data?.[0]?.value ?? fallback
+  } catch {
+    return fallback
+  }
+}
 
 async function updateTicketStatus(ticketNumber, status) {
   await fetch(`${SUPABASE_URL}/rest/v1/tickets?ticket_number=eq.${ticketNumber}`, {
@@ -71,6 +83,15 @@ export default async function handler(req, res) {
       const usernameLine = clean.split('\n').find(l => l.startsWith('🆔 @'))
       const username     = usernameLine ? usernameLine.replace('🆔 @', '').trim() : null
 
+      const [festDate, festAddress] = await Promise.all([
+        getSetting('festival_date', '2026-04-25T09:00:00'),
+        getSetting('festival_address', 'Toshkent'),
+      ])
+      const d = new Date(festDate)
+      const dateLabel = isNaN(d)
+        ? '25-aprel · Toshkent'
+        : `${d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long' })} · ${festAddress}`
+
       const ticketMsg =
         `━━━━━━━━━━━━━━━━━━━━\n` +
         `🌿 <b>YASHIL UYIM</b>\n` +
@@ -81,7 +102,7 @@ export default async function handler(req, res) {
         (username ? `✈️ @${username}\n` : '') +
         `📱 ${phone}\n` +
         `🎫 ${ticket_count} ta chipta\n\n` +
-        `📅 <b>25-aprel · Toshkent</b>\n\n` +
+        `📅 <b>${dateLabel}</b>\n\n` +
         `━━━━━━━━━━━━━━━━━━━━\n` +
         `Festival kunida shu xabarni ko'rsating! 🌱`
 
@@ -114,10 +135,17 @@ export default async function handler(req, res) {
   const text    = message.text || ''
   const firstName = message.from?.first_name || 'Mehmon'
 
-  if (text === '/start') {
+  if (text === '/start' || text === '/help') {
     await sendMessage(
       chatId,
-      `Salom, <b>${firstName}</b>! 👋\n\nBu botda siz <b>Yashil Uyim</b> festivaliga chipta olishingiz mumkin.\n\n🌿 Festival: <b>25-aprel, Toshkent</b>\n🎟 Ro'yxatdan o'ting!`,
+      `Salom, <b>${firstName}</b>! 🌿\n\n` +
+      `<b>Yashil Uyim</b> — Toshkentda o'tkaziladigan ekologik festival bo'lib, tabiat, barqaror turmush va yashil texnologiyalarga bag'ishlangan.\n\n` +
+      `Ilova orqali siz:\n` +
+      `🎟 Festivalga chipta olishingiz\n` +
+      `📋 Dastur va ma'ruzachilar bilan tanishishingiz\n` +
+      `📰 Yangiliklarni kuzatishingiz\n` +
+      `💡 O'z taklifingizni yuborishingiz mumkin.\n\n` +
+      `Quyidagi tugmani bosing va ishni boshlang 👇`,
       {
         inline_keyboard: [[
           { text: '🌿 Ilovani ochish', web_app: { url: APP_URL } },

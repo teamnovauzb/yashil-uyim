@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
+import { Leaf, Menu, X } from 'lucide-react'
 
 const navLinks = [
   { to: '/', label: 'Bosh sahifa' },
@@ -16,11 +17,10 @@ export default function Navbar() {
     <nav className="bg-[#2D6A4F] text-white shadow-md sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-bold text-xl tracking-tight">
-          <span className="text-2xl">🌿</span>
+          <Leaf size={24} className="text-[#B7E4C7]" />
           <span>Yashil Uyim</span>
         </Link>
 
-        {/* Desktop menu */}
         <ul className="hidden md:flex gap-1">
           {navLinks.map(link => (
             <li key={link.to}>
@@ -41,19 +41,15 @@ export default function Navbar() {
           ))}
         </ul>
 
-        {/* Mobile hamburger */}
         <button
           className="md:hidden p-2 rounded-lg hover:bg-[#40916C] transition-colors"
           onClick={() => setOpen(!open)}
           aria-label="Menyuni ochish"
         >
-          <div className="w-5 h-0.5 bg-white mb-1"></div>
-          <div className="w-5 h-0.5 bg-white mb-1"></div>
-          <div className="w-5 h-0.5 bg-white"></div>
+          {open ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
-      {/* Mobile menu */}
       {open && (
         <div className="md:hidden bg-[#40916C] px-4 pb-4">
           <ul className="flex flex-col gap-1">

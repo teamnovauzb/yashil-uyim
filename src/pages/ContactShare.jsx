@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { requestPhone } from '../lib/telegram'
+import { requestPhone, getTelegramUser } from '../lib/telegram'
+import { markContacted, saveContactToDb } from '../lib/contact'
 
 export default function ContactShare({ onDone }) {
   const navigate = useNavigate()
@@ -8,16 +9,19 @@ export default function ContactShare({ onDone }) {
   const [phone, setPhone] = useState('')
 
   const handleShare = () => {
-    requestPhone((sharedPhone) => {
-      sessionStorage.setItem('tg_contacted', 'true')
-      sessionStorage.setItem('tg_phone', sharedPhone)
+    requestPhone(async (sharedPhone) => {
+      const tgUser = getTelegramUser()
+      markContacted(tgUser, sharedPhone)
       setPhone(sharedPhone)
       setShowModal(true)
+      await saveContactToDb(tgUser, sharedPhone)
     })
   }
 
   const handleSkip = () => {
-    sessionStorage.setItem('tg_contacted', 'true')
+    const tgUser = getTelegramUser()
+    markContacted(tgUser, '')
+    saveContactToDb(tgUser, null)
     navigate('/')
   }
 
@@ -53,23 +57,15 @@ export default function ContactShare({ onDone }) {
       {/* Success Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50"
             onClick={handleContinue}
           />
-
-          {/* Bottom sheet */}
           <div className="relative bg-white rounded-t-3xl w-full max-w-md px-6 pt-6 pb-10 shadow-2xl animate-slide-up">
-
-            {/* Handle bar */}
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-6" />
-
-            {/* Success icon */}
             <div className="w-20 h-20 bg-[#D8F3DC] rounded-full flex items-center justify-center mx-auto mb-5">
               <span className="text-4xl">✅</span>
             </div>
-
             <h2 className="text-2xl font-bold text-[#1B2D1F] mb-2 text-center">
               Rahmat!
             </h2>
@@ -81,15 +77,12 @@ export default function ContactShare({ onDone }) {
                 {phone}
               </p>
             )}
-
-            {/* Info row */}
             <div className="bg-[#F0FFF4] border border-[#B7E4C7] rounded-2xl px-4 py-3 mb-6 flex items-center gap-3">
               <span className="text-2xl">🎟️</span>
               <p className="text-sm text-[#2D6A4F] leading-snug">
                 Chipta olishda raqamingiz avtomatik to'ldiriladi
               </p>
             </div>
-
             <button
               onClick={handleContinue}
               className="w-full bg-[#2D6A4F] text-white font-bold py-4 rounded-2xl text-base hover:bg-[#40916C] transition-colors"

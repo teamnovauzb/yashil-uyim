@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { useT } from '../lib/prefs'
 import XButton from '../components/XButton'
 
 function formatDate(dateStr) {
@@ -52,6 +53,7 @@ function NewsCard({ item }) {
 export default function News() {
   const [news, setNews] = useState([])
   const [loading, setLoading] = useState(true)
+  const t = useT()
 
   useEffect(() => {
     async function fetchNews() {
@@ -73,22 +75,19 @@ export default function News() {
         {/* Header */}
         <div className="text-center mb-10">
           <span className="text-5xl mb-4 block">📰</span>
-          <h1 className="text-3xl font-bold text-[#1B2D1F] mb-2">Yangiliklar</h1>
-          <p className="text-[#40916C]">
-            Yashil Uyim festivali haqidagi so'nggi yangiliklar va e'lonlar
-          </p>
+          <h1 className="text-3xl font-bold text-[#1B2D1F] mb-2">{t('newsTitle')}</h1>
+          <p className="text-[#40916C]">{t('featNewsDesc')}</p>
         </div>
 
         {loading ? (
           <div className="text-center py-16 text-[#52B788]">
             <div className="inline-block w-8 h-8 border-3 border-[#52B788] border-t-transparent rounded-full animate-spin mb-3"></div>
-            <p>Yuklanmoqda...</p>
+            <p>{t('loading')}</p>
           </div>
         ) : news.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl border border-[#B7E4C7]">
             <span className="text-4xl mb-3 block">📭</span>
-            <p className="text-gray-400">Hozircha yangiliklar yo'q</p>
-            <p className="text-gray-300 text-sm mt-1">Tez orada yangiliklar qo'shiladi</p>
+            <p className="text-gray-400">—</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

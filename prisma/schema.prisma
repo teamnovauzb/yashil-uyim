@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  telegramId BigInt   @id @map("telegram_id")
+  username   String?
+  firstName  String?  @map("first_name")
+  lastName   String?  @map("last_name")
+  phone      String?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("users")
+}
+
+model Ticket {
+  id           BigInt    @id @default(autoincrement())
+  ticketNumber Int?      @unique @map("ticket_number")
+  fullName     String    @map("full_name")
+  phone        String
+  ticketCount  Int       @default(1) @map("ticket_count")
+  status       String    @default("pending")
+  chatId       BigInt?   @map("chat_id")
+  receiptUrl   String?   @map("receipt_url")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("tickets")
+}
+
+model Suggestion {
+  id         BigInt   @id @default(autoincrement())
+  fullName   String?  @map("full_name")
+  email      String?
+  phone      String?
+  message    String
+  chatId     BigInt?  @map("chat_id")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("suggestions")
+}
+
+model News {
+  id          BigInt   @id @default(autoincrement())
+  title       String
+  content     String
+  imageUrl    String?  @map("image_url")
+  publishedAt DateTime @default(now()) @map("published_at") @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("news")
+}
+
+model Program {
+  id          BigInt    @id @default(autoincrement())
+  title       String
+  description String?
+  speaker     String?
+  category    String?
+  imageUrl    String?   @map("image_url")
+  startTime   String?   @map("start_time")
+  endTime     String?   @map("end_time")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("programs")
+}
+
+model AdminUser {
+  telegramId BigInt   @id @map("telegram_id")
+  username   String?
+  firstName  String?  @map("first_name")
+  isSuper    Boolean  @default(false) @map("is_super")
+  addedBy    BigInt?  @map("added_by")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("admins")
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("settings")
+}

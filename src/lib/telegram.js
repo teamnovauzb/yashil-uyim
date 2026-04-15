@@ -18,6 +18,31 @@ export function getTelegramUser() {
   return tg?.initDataUnsafe?.user || null
 }
 
+// Open external URL — uses Telegram's native opener when inside the mini app
+export function openExternal(url) {
+  try {
+    if (tg?.openLink) {
+      tg.openLink(url, { try_instant_view: false })
+      return
+    }
+  } catch {}
+  window.open(url, '_blank', 'noopener,noreferrer')
+}
+
+export function showBackButton(onClick) {
+  if (!tg?.BackButton) return () => {}
+  const handler = () => { try { onClick() } catch {} }
+  tg.BackButton.onClick(handler)
+  tg.BackButton.show()
+  return () => {
+    try { tg.BackButton.offClick(handler); tg.BackButton.hide() } catch {}
+  }
+}
+
+export function hideBackButton() {
+  try { tg?.BackButton?.hide() } catch {}
+}
+
 export function closeMiniApp() {
   try {
     window.Telegram.WebApp.close()

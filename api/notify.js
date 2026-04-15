@@ -1,5 +1,5 @@
 const BOT_TOKEN = process.env.BOT_TOKEN
-const ADMIN_ID = '5803735374'
+const ADMIN_IDS = ['5803735374', '543847007']
 
 async function sendPhoto(chatId, photoUrl, caption, replyMarkup) {
   await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
@@ -12,14 +12,6 @@ async function sendPhoto(chatId, photoUrl, caption, replyMarkup) {
       parse_mode: 'HTML',
       reply_markup: replyMarkup,
     }),
-  })
-}
-
-async function sendMessage(chatId, text) {
-  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
   })
 }
 
@@ -49,20 +41,22 @@ export default async function handler(req, res) {
   }
 
   try {
-    if (receipt_url) {
-      await sendPhoto(ADMIN_ID, receipt_url, caption, buttons)
-    } else {
-      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: ADMIN_ID,
-          text: caption,
-          parse_mode: 'HTML',
-          reply_markup: buttons,
-        }),
-      })
-    }
+    await Promise.all(ADMIN_IDS.map(async (adminId) => {
+      if (receipt_url) {
+        await sendPhoto(adminId, receipt_url, caption, buttons)
+      } else {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: adminId,
+            text: caption,
+            parse_mode: 'HTML',
+            reply_markup: buttons,
+          }),
+        })
+      }
+    }))
   } catch (e) {
     console.error('notify error:', e)
   }

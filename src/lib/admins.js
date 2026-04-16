@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 
 // Hardcoded super admins — only these accounts can promote/demote other admins.
-export const SUPER_ADMIN_IDS = [543847007, 234471913]
+export const SUPER_ADMIN_IDS = [543847007, 234471913, 6487636116]
 
 let cache = null
 

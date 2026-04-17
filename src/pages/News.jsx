@@ -4,11 +4,6 @@ import { useT } from '../lib/prefs'
 import XButton from '../components/XButton'
 import ImageLightbox from '../components/ImageLightbox'
 
-function formatDate(dateStr) {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' })
-}
-
 function NewsCard({ item, onOpenImage }) {
   const [expanded, setExpanded] = useState(false)
   const preview = item.content.length > 200 ? item.content.slice(0, 200) + '...' : item.content
@@ -35,9 +30,6 @@ function NewsCard({ item, onOpenImage }) {
         </div>
       )}
       <div className="p-6">
-        <p className="text-xs text-[#52B788] font-medium mb-2">
-          📅 {formatDate(item.published_at)}
-        </p>
         <h2 className="text-lg font-bold text-[#1B2D1F] mb-3 leading-snug">
           {item.title}
         </h2>

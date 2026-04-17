@@ -16,10 +16,11 @@ import ContactShare from './pages/ContactShare'
 import Profile from './pages/Profile'
 import Admin from './pages/Admin'
 import { isTelegram, getTelegramUser } from './lib/telegram'
-import { isContacted, markContacted, loadContactFromDb } from './lib/contact'
+import { isContacted, markContacted, loadContactFromDb, isTester } from './lib/contact'
 import { isAdmin } from './lib/admins'
 
 const inTelegram = isTelegram()
+const tgUserAtBoot = getTelegramUser()
 
 function TelegramHome() {
   const tgUser = getTelegramUser()
@@ -62,6 +63,20 @@ export default function App() {
 
   const [showSplash, setShowSplash] = useState(!alreadySeen && !isAdminRoute)
   const [showOnboarding, setShowOnboarding] = useState(false)
+
+  // Tester mode: always re-show intros + onboarding on every fresh load
+  useEffect(() => {
+    if (!inTelegram || isAdminRoute) return
+    isTester(tgUserAtBoot).then((tester) => {
+      if (!tester) return
+      sessionStorage.removeItem('splash_shown')
+      sessionStorage.removeItem('tg_popup_shown')
+      setShowSplash(true)
+      // Reset contact cache so the contact screen shows again
+      const k = tgUserAtBoot?.id ? `tg_contact_${tgUserAtBoot.id}` : null
+      if (k) localStorage.removeItem(k)
+    })
+  }, [isAdminRoute])
 
   function handleSplashDone() {
     sessionStorage.setItem('splash_shown', 'true')

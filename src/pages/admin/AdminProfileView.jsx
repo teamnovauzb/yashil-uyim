@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import {
-  User, Phone, IdCard, Crown, Shield, Sun, Moon, Languages,
-  Trash2, Search, UserPlus, LogOut,
+  User, Phone, Crown, Shield, Sun, Moon, Languages,
+  Trash2, Search, UserPlus, FlaskConical,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { usePrefs } from '../../lib/prefs'
@@ -55,6 +55,21 @@ export default function AdminProfileView({ tgUser, isSuper }) {
       toast.success('Admin qilindi')
       load()
     } catch (err) { toast.error(err.message || 'Xato') }
+    setBusy(null)
+  }
+
+  const toggleTester = async (u) => {
+    setBusy(u.telegram_id)
+    const next = !u.is_tester
+    const { error } = await supabase
+      .from('users')
+      .update({ is_tester: next })
+      .eq('telegram_id', u.telegram_id)
+    if (error) toast.error(error.message)
+    else {
+      toast.success(next ? 'Tester qilindi' : 'Tester olindi')
+      setUsers(prev => prev.map(x => x.telegram_id === u.telegram_id ? { ...x, is_tester: next } : x))
+    }
     setBusy(null)
   }
 
@@ -217,6 +232,9 @@ export default function AdminProfileView({ tgUser, isSuper }) {
                         ) : isAdm && (
                           <span className="text-[9px] px-1.5 py-0.5 rounded bg-green-400/20 text-green-400 font-bold">ADMIN</span>
                         )}
+                        {u.is_tester && (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-sky-400/20 text-sky-400 font-bold">TESTER</span>
+                        )}
                       </div>
                       <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-gray-500 mt-0.5">
                         {u.username && <span>@{u.username}</span>}
@@ -226,26 +244,38 @@ export default function AdminProfileView({ tgUser, isSuper }) {
                     </div>
                   </div>
                   {isSuper && !isSup && (
-                    <div className="mt-2.5 pt-2.5 border-t border-gray-700/60">
+                    <div className="mt-2.5 pt-2.5 border-t border-gray-700/60 grid grid-cols-2 gap-2">
                       {isAdm ? (
                         <button
                           onClick={() => demote(u.telegram_id)}
                           disabled={busy === u.telegram_id}
-                          className="w-full flex items-center justify-center gap-1.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-semibold rounded-lg disabled:opacity-50"
+                          className="flex items-center justify-center gap-1.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-semibold rounded-lg disabled:opacity-50"
                         >
                           <Trash2 size={12} />
-                          {busy === u.telegram_id ? '...' : "Admindan o'chirish"}
+                          {busy === u.telegram_id ? '...' : "Admindan olish"}
                         </button>
                       ) : (
                         <button
                           onClick={() => promote(u)}
                           disabled={busy === u.telegram_id}
-                          className="w-full flex items-center justify-center gap-1.5 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-semibold rounded-lg disabled:opacity-50"
+                          className="flex items-center justify-center gap-1.5 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-semibold rounded-lg disabled:opacity-50"
                         >
                           <UserPlus size={12} />
                           {busy === u.telegram_id ? '...' : 'Admin qilish'}
                         </button>
                       )}
+                      <button
+                        onClick={() => toggleTester(u)}
+                        disabled={busy === u.telegram_id}
+                        className={`flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-lg disabled:opacity-50 border ${
+                          u.is_tester
+                            ? 'bg-sky-500/20 hover:bg-sky-500/30 border-sky-500/40 text-sky-300'
+                            : 'bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/30 text-sky-400'
+                        }`}
+                      >
+                        <FlaskConical size={12} />
+                        {busy === u.telegram_id ? '...' : (u.is_tester ? 'Tester olish' : 'Tester qilish')}
+                      </button>
                     </div>
                   )}
                 </li>

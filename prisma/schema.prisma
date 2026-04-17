@@ -12,6 +12,7 @@ model User {
   firstName  String?  @map("first_name")
   lastName   String?  @map("last_name")
   phone      String?
+  isTester   Boolean  @default(false) @map("is_tester")
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@map("users")

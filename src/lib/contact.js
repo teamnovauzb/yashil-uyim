@@ -55,3 +55,13 @@ export async function loadContactFromDb(tgUser) {
   }
   return data?.phone || null
 }
+
+export async function isTester(tgUser) {
+  if (!tgUser?.id) return false
+  const { data } = await supabase
+    .from('users')
+    .select('is_tester')
+    .eq('telegram_id', tgUser.id)
+    .maybeSingle()
+  return !!data?.is_tester
+}

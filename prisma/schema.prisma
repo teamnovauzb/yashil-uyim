@@ -33,13 +33,16 @@ model Ticket {
 }
 
 model Suggestion {
-  id         BigInt   @id @default(autoincrement())
-  fullName   String?  @map("full_name")
+  id         BigInt    @id @default(autoincrement())
+  fullName   String?   @map("full_name")
   email      String?
   phone      String?
   message    String
-  chatId     BigInt?  @map("chat_id")
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  chatId     BigInt?   @map("chat_id")
+  reply      String?
+  repliedAt  DateTime? @map("replied_at") @db.Timestamptz(6)
+  repliedBy  BigInt?   @map("replied_by")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@map("suggestions")
 }

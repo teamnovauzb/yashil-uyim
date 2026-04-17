@@ -7,6 +7,7 @@ import {
 import { supabase } from '../../lib/supabase'
 import { usePrefs } from '../../lib/prefs'
 import { addAdmin, removeAdmin, invalidateAdmins, loadAdmins, isSuperAdmin } from '../../lib/admins'
+import FeedbackList from './FeedbackList'
 
 const LANGS = [
   { code: 'uz', label: "O'zbek"  },
@@ -284,6 +285,13 @@ export default function AdminProfileView({ tgUser, isSuper }) {
           </ul>
         )}
       </div>
+
+      {/* Talab va Takliflar — super admin only */}
+      {isSuper && (
+        <div className="bg-gray-900/80 rounded-2xl border border-gray-800 p-4">
+          <FeedbackList tgUser={tgUser} />
+        </div>
+      )}
 
       {!isSuper && (
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-[11px] text-amber-300 text-center">

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Phone, IdCard, BadgeCheck, Ticket, Newspaper, Lightbulb, Sun, Moon, Languages } from 'lucide-react'
+import { Phone, IdCard, BadgeCheck, Ticket, Newspaper, MessageSquare, Sun, Moon, Languages } from 'lucide-react'
 import { getTelegramUser, isTelegram } from '../lib/telegram'
 import { getCachedPhone, isContacted, loadContactFromDb, markContacted } from '../lib/contact'
 import { supabase } from '../lib/supabase'
 import { usePrefs, useT } from '../lib/prefs'
+import FeedbackPanel from '../components/FeedbackPanel'
 
 const LANGS = [
   { code: 'uz', label: "O'zbek"  },
@@ -157,15 +158,21 @@ export default function Profile() {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Link to="/yangiliklar" className="bg-white rounded-2xl p-4 border border-[#B7E4C7] text-center">
-            <Newspaper size={22} className="mx-auto mb-1 text-[#2D6A4F]" />
-            <p className="text-xs font-semibold text-[#1B2D1F]">{t('news')}</p>
-          </Link>
-          <Link to="/taklif" className="bg-white rounded-2xl p-4 border border-[#B7E4C7] text-center">
-            <Lightbulb size={22} className="mx-auto mb-1 text-[#2D6A4F]" />
-            <p className="text-xs font-semibold text-[#1B2D1F]">Taklif</p>
-          </Link>
+        <Link
+          to="/yangiliklar"
+          className="block bg-white rounded-2xl p-4 border border-[#B7E4C7] text-center mb-5"
+        >
+          <Newspaper size={22} className="mx-auto mb-1 text-[#2D6A4F]" />
+          <p className="text-xs font-semibold text-[#1B2D1F]">{t('news')}</p>
+        </Link>
+
+        {/* Talab va Takliflar */}
+        <div className="mb-5">
+          <h2 className="text-sm font-bold text-[#1B2D1F] mb-3 px-1 flex items-center gap-2">
+            <MessageSquare size={16} className="text-[#2D6A4F]" />
+            Talab va Takliflar
+          </h2>
+          <FeedbackPanel />
         </div>
       </div>
     </div>

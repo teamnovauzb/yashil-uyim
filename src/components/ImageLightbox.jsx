@@ -28,7 +28,6 @@ export default function ImageLightbox({ src, alt, onClose }) {
       URL.revokeObjectURL(url)
       toast.success('Yuklab olindi')
     } catch {
-      // Inside Telegram or restricted contexts: open in external browser
       openExternal(src)
     }
   }
@@ -37,30 +36,40 @@ export default function ImageLightbox({ src, alt, onClose }) {
     <div
       className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
       onClick={onClose}
+      style={{
+        paddingTop:    'max(env(safe-area-inset-top), 5rem)',
+        paddingBottom: 'calc(max(env(safe-area-inset-bottom), 0px) + 6rem)',
+        paddingLeft:   '1rem',
+        paddingRight:  '1rem',
+      }}
     >
-      <div className="absolute right-3 flex gap-2" style={{ top: 'max(env(safe-area-inset-top), 1rem)' }}>
+      <img
+        src={src}
+        alt={alt}
+        onClick={(e) => e.stopPropagation()}
+        className="max-w-full max-h-full object-contain rounded-lg"
+      />
+
+      {/* Bottom action bar — clear of all Telegram chrome */}
+      <div
+        className="fixed left-0 right-0 flex items-center justify-center gap-3 px-4"
+        style={{ bottom: 'max(env(safe-area-inset-bottom), 1rem)' }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
-          onClick={(e) => { e.stopPropagation(); download() }}
-          className="w-10 h-10 rounded-full bg-white/15 backdrop-blur text-white flex items-center justify-center"
-          aria-label="Download"
+          onClick={download}
+          className="flex items-center gap-2 bg-white text-[#1B2D1F] font-semibold px-5 py-3 rounded-full shadow-2xl active:scale-95 transition-transform"
         >
-          <Download size={18} />
+          <Download size={18} /> Yuklab olish
         </button>
         <button
           onClick={onClose}
-          className="w-10 h-10 rounded-full bg-white/15 backdrop-blur text-white flex items-center justify-center"
+          className="w-12 h-12 rounded-full bg-white/15 backdrop-blur text-white flex items-center justify-center shadow-2xl active:scale-95 transition-transform"
           aria-label="Close"
         >
           <X size={20} />
         </button>
       </div>
-      <img
-        src={src}
-        alt={alt}
-        onClick={(e) => e.stopPropagation()}
-        className="max-w-full max-h-full object-contain px-4"
-        style={{ paddingTop: 'max(env(safe-area-inset-top), 4rem)', paddingBottom: '2rem' }}
-      />
     </div>
   )
 }

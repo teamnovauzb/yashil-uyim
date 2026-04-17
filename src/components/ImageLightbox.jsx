@@ -5,12 +5,21 @@ import { openExternal } from '../lib/telegram'
 
 export default function ImageLightbox({ src, alt, onClose }) {
   useEffect(() => {
+    // Push a dummy history entry; popstate (back button) closes the lightbox
+    // instead of navigating away from the underlying page.
+    history.pushState({ lightbox: true }, '')
+    let closedByPop = false
+    const onPop = () => { closedByPop = true; onClose() }
     const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('popstate', onPop)
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
     return () => {
+      window.removeEventListener('popstate', onPop)
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = ''
+      // Clean up the dummy entry on manual close (X / outside tap)
+      if (!closedByPop && history.state?.lightbox) history.back()
     }
   }, [onClose])
 

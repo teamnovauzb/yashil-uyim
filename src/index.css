@@ -1,13 +1,52 @@
 @import "tailwindcss";
 
+/* ============================================================
+   EDITORIAL NATURALIST — Color tokens
+   Light: paper-like neutrals + deep forest primary
+   Dark : forest-floor surfaces + mint-leaf primary accent
+   ============================================================ */
+
+:root {
+  /* Light mode (default) */
+  --en-surface:                  #F8F4EC;
+  --en-surface-lowest:            #F2EDE0;
+  --en-surface-low:               #ECE5D2;
+  --en-surface-container:         #E5DDC4;
+  --en-surface-high:              #DDD3B6;
+  --en-surface-highest:           #FFFFFF;
+  --en-primary:                   #012d1d;
+  --en-primary-container:         #1B4332;
+  --en-on-primary:                #FBF9F4;
+  --en-on-surface:                #1A2820;
+  --en-on-surface-variant:        #586660;
+  --en-outline-variant:           #B5AC95;
+  --en-mint:                      #2D6A4F;
+}
+
+body.theme-dark {
+  --en-surface:                  #0E1813;
+  --en-surface-lowest:            #060D0A;
+  --en-surface-low:               #152019;
+  --en-surface-container:         #1B2A21;
+  --en-surface-high:              #243528;
+  --en-surface-highest:           #2D4030;
+  --en-primary:                   #6FD9A0;
+  --en-primary-container:         #1B4332;
+  --en-on-primary:                #012d1d;
+  --en-on-surface:                #E5EFE5;
+  --en-on-surface-variant:        #A8B5AC;
+  --en-outline-variant:           #4A5A50;
+  --en-mint:                      #6FD9A0;
+}
+
 @theme {
-  --color-green-950: #1B2D1F;
-  --color-green-900: #2D6A4F;
-  --color-green-700: #40916C;
+  --color-green-950: #012d1d;
+  --color-green-900: #1B4332;
+  --color-green-700: #2D6A4F;
   --color-green-500: #52B788;
-  --color-green-300: #B7E4C7;
-  --color-green-100: #D8F3DC;
-  --color-green-50: #F0FFF4;
+  --color-green-300: #B5AC95;
+  --color-green-100: #ECE5D2;
+  --color-green-50:  #F8F4EC;
 }
 
 @keyframes slide-up {
@@ -15,106 +54,122 @@
   to   { transform: translateY(0);    opacity: 1; }
 }
 
-.animate-slide-up {
-  animation: slide-up 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards;
-}
+.animate-slide-up { animation: slide-up 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards; }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
   font-family: system-ui, 'Segoe UI', sans-serif;
-  background-color: #F0FFF4;
-  color: #1B2D1F;
+  background-color: var(--en-surface);
+  color: var(--en-on-surface);
+  transition: background-color 350ms ease, color 350ms ease;
 }
-
-body.theme-dark:has(#admin-root) {
-  background-color: #0a120d;
-}
-
-/* ---------- Admin in dark mode — green-tinted surfaces ---------- */
-body.theme-dark #admin-root {
-  background: linear-gradient(to bottom, #0a120d, #081410) !important;
-}
-body.theme-dark #admin-root .bg-gray-950 { background-color: #081410 !important; }
-body.theme-dark #admin-root .bg-gray-900,
-body.theme-dark #admin-root .bg-gray-900\/80,
-body.theme-dark #admin-root .bg-gray-900\/90,
-body.theme-dark #admin-root .bg-gray-900\/95 { background-color: #122b1d !important; }
-body.theme-dark #admin-root .bg-gray-800,
-body.theme-dark #admin-root .bg-gray-800\/80,
-body.theme-dark #admin-root .bg-gray-800\/50,
-body.theme-dark #admin-root .bg-gray-800\/70 { background-color: #1a3a29 !important; }
-body.theme-dark #admin-root .border-gray-800,
-body.theme-dark #admin-root .border-gray-800\/80,
-body.theme-dark #admin-root .border-gray-800\/60,
-body.theme-dark #admin-root .border-gray-700,
-body.theme-dark #admin-root .border-gray-700\/60 { border-color: #204a33 !important; }
-body.theme-dark #admin-root .from-gray-950,
-body.theme-dark #admin-root .to-gray-950 { --tw-gradient-from: #081410 !important; --tw-gradient-to: #081410 !important; }
-
-/* ---------- Admin in light mode ---------- */
-body:not(.theme-dark):has(#admin-root) {
-  background-color: #F0FFF4;
-}
-body:not(.theme-dark) #admin-root {
-  background: linear-gradient(to bottom, #F0FFF4, #E6F4EA) !important;
-  color: #1B2D1F !important;
-}
-body:not(.theme-dark) #admin-root .bg-gray-950,
-body:not(.theme-dark) #admin-root .bg-gradient-to-b {
-  background: transparent !important;
-}
-body:not(.theme-dark) #admin-root .bg-gray-900,
-body:not(.theme-dark) #admin-root .bg-gray-900\/80,
-body:not(.theme-dark) #admin-root .bg-gray-900\/90,
-body:not(.theme-dark) #admin-root .bg-gray-900\/95 {
-  background-color: #ffffff !important;
-}
-body:not(.theme-dark) #admin-root .bg-gray-800,
-body:not(.theme-dark) #admin-root .bg-gray-800\/80,
-body:not(.theme-dark) #admin-root .bg-gray-800\/50 {
-  background-color: #E6F4EA !important;
-}
-body:not(.theme-dark) #admin-root .border-gray-800,
-body:not(.theme-dark) #admin-root .border-gray-800\/80,
-body:not(.theme-dark) #admin-root .border-gray-700 {
-  border-color: #B7E4C7 !important;
-}
-body:not(.theme-dark) #admin-root .text-white { color: #1B2D1F !important; }
-body:not(.theme-dark) #admin-root .text-gray-300 { color: #2D6A4F !important; }
-body:not(.theme-dark) #admin-root .text-gray-400 { color: #40916C !important; }
-body:not(.theme-dark) #admin-root .text-gray-500 { color: #52B788 !important; }
-body:not(.theme-dark) #admin-root .text-gray-600 { color: #7FC49A !important; }
-body:not(.theme-dark) #admin-root .text-green-400 { color: #2D6A4F !important; }
-body:not(.theme-dark) #admin-root input,
-body:not(.theme-dark) #admin-root textarea,
-body:not(.theme-dark) #admin-root select {
-  background-color: #F0FFF4 !important;
-  color: #1B2D1F !important;
-  border-color: #B7E4C7 !important;
-}
-
-/* ---------- Dark theme ---------- */
-body.theme-dark {
-  background-color: #0a120d;
-  color: #E6F4EA;
-}
-body.theme-dark .bg-white { background-color: #111c15 !important; }
-body.theme-dark .bg-\[\#F0FFF4\] { background-color: #0a120d !important; }
-body.theme-dark .bg-\[\#D8F3DC\] { background-color: #132a1c !important; }
-body.theme-dark .text-\[\#1B2D1F\] { color: #E6F4EA !important; }
-body.theme-dark .text-\[\#2D6A4F\] { color: #7FC49A !important; }
-body.theme-dark .text-\[\#40916C\] { color: #9FD6B5 !important; }
-body.theme-dark .border-\[\#B7E4C7\] { border-color: #1d3a27 !important; }
-body.theme-dark .text-gray-500 { color: #8B9A90 !important; }
-body.theme-dark .text-gray-400 { color: #6E7E74 !important; }
-body.theme-dark .text-gray-300 { color: #B0C4B8 !important; }
 
 #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
+
+/* ============================================================
+   USER-SIDE — remap existing palette literals to the new tokens
+   ============================================================ */
+
+/* Backgrounds */
+.bg-white                   { background-color: var(--en-surface-highest) !important; }
+.bg-\[\#F0FFF4\]           { background-color: var(--en-surface) !important; }
+.bg-\[\#D8F3DC\]           { background-color: var(--en-surface-low) !important; }
+body.theme-dark .bg-white  { background-color: var(--en-surface-container) !important; }
+
+/* Text */
+.text-\[\#1B2D1F\]         { color: var(--en-on-surface) !important; }
+.text-\[\#2D6A4F\]         { color: var(--en-mint) !important; }
+.text-\[\#40916C\]         { color: var(--en-on-surface-variant) !important; }
+body.theme-dark .text-gray-500 { color: var(--en-on-surface-variant) !important; }
+body.theme-dark .text-gray-400 { color: var(--en-on-surface-variant) !important; }
+body.theme-dark .text-gray-300 { color: var(--en-on-surface) !important; }
+
+/* Borders → tonal "ghost" */
+.border-\[\#B7E4C7\]       { border-color: color-mix(in srgb, var(--en-outline-variant) 50%, transparent) !important; }
+
+/* Solid forest gradients (hero, tickets, splash) */
+.from-\[\#1B4332\]         { --tw-gradient-from: var(--en-primary) !important; }
+.via-\[\#2D6A4F\]          { --tw-gradient-via: var(--en-primary-container) !important; }
+.to-\[\#40916C\]           { --tw-gradient-to: var(--en-mint) !important; }
+
+/* Solid green pills/buttons */
+.bg-\[\#2D6A4F\]           { background-color: var(--en-primary) !important; color: var(--en-on-primary) !important; }
+.hover\:bg-\[\#40916C\]:hover { background-color: var(--en-primary-container) !important; }
+
+/* ============================================================
+   ADMIN PANEL — green-tinted in dark mode, paper in light mode
+   ============================================================ */
+
+body.theme-dark:has(#admin-root) { background-color: var(--en-surface-lowest); }
+body:not(.theme-dark):has(#admin-root) { background-color: var(--en-surface); }
+
+/* Dark admin */
+body.theme-dark #admin-root {
+  background: linear-gradient(to bottom, var(--en-surface-lowest), var(--en-surface)) !important;
+}
+body.theme-dark #admin-root .bg-gray-950 { background-color: var(--en-surface-lowest) !important; }
+body.theme-dark #admin-root .bg-gray-900,
+body.theme-dark #admin-root .bg-gray-900\/80,
+body.theme-dark #admin-root .bg-gray-900\/90,
+body.theme-dark #admin-root .bg-gray-900\/95 { background-color: var(--en-surface-container) !important; }
+body.theme-dark #admin-root .bg-gray-800,
+body.theme-dark #admin-root .bg-gray-800\/80,
+body.theme-dark #admin-root .bg-gray-800\/50,
+body.theme-dark #admin-root .bg-gray-800\/70 { background-color: var(--en-surface-high) !important; }
+body.theme-dark #admin-root .border-gray-800,
+body.theme-dark #admin-root .border-gray-800\/80,
+body.theme-dark #admin-root .border-gray-800\/60,
+body.theme-dark #admin-root .border-gray-700,
+body.theme-dark #admin-root .border-gray-700\/60 {
+  border-color: color-mix(in srgb, var(--en-outline-variant) 35%, transparent) !important;
+}
+body.theme-dark #admin-root .from-gray-950,
+body.theme-dark #admin-root .to-gray-950 {
+  --tw-gradient-from: var(--en-surface-lowest) !important;
+  --tw-gradient-to:   var(--en-surface-lowest) !important;
+}
+body.theme-dark #admin-root .text-green-400 { color: var(--en-primary) !important; }
+body.theme-dark #admin-root .bg-green-600,
+body.theme-dark #admin-root .hover\:bg-green-500:hover { background-color: var(--en-primary) !important; color: var(--en-on-primary) !important; }
+
+/* Light admin */
+body:not(.theme-dark) #admin-root {
+  background: linear-gradient(to bottom, var(--en-surface), var(--en-surface-low)) !important;
+  color: var(--en-on-surface) !important;
+}
+body:not(.theme-dark) #admin-root .bg-gray-950,
+body:not(.theme-dark) #admin-root .bg-gradient-to-b { background: transparent !important; }
+body:not(.theme-dark) #admin-root .bg-gray-900,
+body:not(.theme-dark) #admin-root .bg-gray-900\/80,
+body:not(.theme-dark) #admin-root .bg-gray-900\/90,
+body:not(.theme-dark) #admin-root .bg-gray-900\/95 { background-color: var(--en-surface-highest) !important; }
+body:not(.theme-dark) #admin-root .bg-gray-800,
+body:not(.theme-dark) #admin-root .bg-gray-800\/80,
+body:not(.theme-dark) #admin-root .bg-gray-800\/50,
+body:not(.theme-dark) #admin-root .bg-gray-800\/70 { background-color: var(--en-surface-low) !important; }
+body:not(.theme-dark) #admin-root .border-gray-800,
+body:not(.theme-dark) #admin-root .border-gray-800\/80,
+body:not(.theme-dark) #admin-root .border-gray-700 {
+  border-color: color-mix(in srgb, var(--en-outline-variant) 35%, transparent) !important;
+}
+body:not(.theme-dark) #admin-root .text-white   { color: var(--en-on-surface) !important; }
+body:not(.theme-dark) #admin-root .text-gray-300 { color: var(--en-on-surface) !important; }
+body:not(.theme-dark) #admin-root .text-gray-400 { color: var(--en-on-surface-variant) !important; }
+body:not(.theme-dark) #admin-root .text-gray-500 { color: var(--en-on-surface-variant) !important; }
+body:not(.theme-dark) #admin-root .text-gray-600 { color: var(--en-outline-variant) !important; }
+body:not(.theme-dark) #admin-root .text-green-400 { color: var(--en-primary) !important; }
+body:not(.theme-dark) #admin-root input,
+body:not(.theme-dark) #admin-root textarea,
+body:not(.theme-dark) #admin-root select {
+  background-color: var(--en-surface-low) !important;
+  color: var(--en-on-surface) !important;
+  border-color: color-mix(in srgb, var(--en-outline-variant) 35%, transparent) !important;
+}
+body:not(.theme-dark) #admin-root .bg-green-600,
+body:not(.theme-dark) #admin-root .hover\:bg-green-500:hover { background-color: var(--en-primary) !important; color: var(--en-on-primary) !important; }

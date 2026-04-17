@@ -10,22 +10,21 @@ function NewsCard({ item, onOpenImage }) {
 
   return (
     <article className="bg-white rounded-2xl border border-[#B7E4C7] overflow-hidden hover:shadow-md transition-shadow">
-      {item.image_url && (
+      {item.image_url ? (
         <button
           type="button"
           onClick={() => onOpenImage(item.image_url, item.title)}
-          className="block w-full"
+          className="block w-full bg-[#F0FFF4]"
         >
           <img
             src={item.image_url}
             alt={item.title}
-            className="w-full h-48 object-cover hover:opacity-90 transition-opacity cursor-zoom-in"
+            className="w-full aspect-[4/5] object-cover hover:opacity-90 transition-opacity cursor-zoom-in"
             onError={e => { e.target.style.display = 'none' }}
           />
         </button>
-      )}
-      {!item.image_url && (
-        <div className="w-full h-32 bg-gradient-to-br from-[#2D6A4F] to-[#52B788] flex items-center justify-center">
+      ) : (
+        <div className="w-full aspect-[4/5] bg-gradient-to-br from-[#2D6A4F] to-[#52B788] flex items-center justify-center">
           <span className="text-4xl">🌿</span>
         </div>
       )}

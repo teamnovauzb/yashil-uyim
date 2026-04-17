@@ -21,11 +21,11 @@ function ProgramCard({ item, onOpenImage }) {
   return (
     <article className="bg-white rounded-2xl border border-[#B7E4C7] overflow-hidden hover:shadow-md transition-shadow">
       {item.image_url && (
-        <button type="button" onClick={() => onOpenImage(item.image_url, item.title)} className="block w-full">
+        <button type="button" onClick={() => onOpenImage(item.image_url, item.title)} className="block w-full bg-[#F0FFF4]">
           <img
             src={item.image_url}
             alt={item.title}
-            className="w-full h-40 object-cover hover:opacity-90 transition-opacity cursor-zoom-in"
+            className="w-full aspect-[4/5] object-cover hover:opacity-90 transition-opacity cursor-zoom-in"
           />
         </button>
       )}

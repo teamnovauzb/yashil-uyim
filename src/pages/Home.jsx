@@ -148,8 +148,26 @@ export default function Home() {
       )}
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-[#1B4332] via-[#2D6A4F] to-[#40916C] text-white py-20 px-4">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#1B4332] via-[#2D6A4F] to-[#40916C] text-white py-20 px-4">
+        {/* Eco-tree backdrop */}
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none bg-no-repeat bg-center bg-contain opacity-25"
+          style={{
+            backgroundImage: 'url(/landing.png)',
+            mixBlendMode: 'screen',
+          }}
+        />
+        {/* Soft vignette so text reads cleanly over the tree */}
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse at center, transparent 30%, rgba(27, 67, 50, 0.55) 75%)',
+          }}
+        />
+        <div className="relative max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-4 py-1.5 text-sm font-medium mb-6 text-green-200">
             <Leaf size={14} /> {t('monthlyTashkent')}
           </div>

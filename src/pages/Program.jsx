@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useT } from '../lib/prefs'
 import XButton from '../components/XButton'
+import ImageLightbox from '../components/ImageLightbox'
 
 const CATEGORY_LABELS = {
   'suhbat':         { label: 'Suhbat',        color: 'bg-blue-100 text-blue-700' },
@@ -15,12 +16,18 @@ function formatTime(t) {
   return t ? t.slice(0, 5) : ''
 }
 
-function ProgramCard({ item }) {
+function ProgramCard({ item, onOpenImage }) {
   const cat = CATEGORY_LABELS[item.category] || CATEGORY_LABELS['boshqa']
   return (
     <article className="bg-white rounded-2xl border border-[#B7E4C7] overflow-hidden hover:shadow-md transition-shadow">
       {item.image_url && (
-        <img src={item.image_url} alt={item.title} className="w-full h-40 object-cover" />
+        <button type="button" onClick={() => onOpenImage(item.image_url, item.title)} className="block w-full">
+          <img
+            src={item.image_url}
+            alt={item.title}
+            className="w-full h-40 object-cover hover:opacity-90 transition-opacity cursor-zoom-in"
+          />
+        </button>
       )}
       <div className="p-4 flex gap-4">
         <div className="flex-shrink-0 text-center min-w-[60px]">
@@ -51,6 +58,7 @@ function ProgramCard({ item }) {
 export default function Program() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const [lightbox, setLightbox] = useState(null)
   const t = useT()
 
   useEffect(() => {
@@ -82,10 +90,19 @@ export default function Program() {
           </div>
         ) : (
           <div className="space-y-3">
-            {items.map(item => <ProgramCard key={item.id} item={item} />)}
+            {items.map(item => (
+              <ProgramCard
+                key={item.id}
+                item={item}
+                onOpenImage={(src, alt) => setLightbox({ src, alt })}
+              />
+            ))}
           </div>
         )}
       </div>
+      {lightbox && (
+        <ImageLightbox src={lightbox.src} alt={lightbox.alt} onClose={() => setLightbox(null)} />
+      )}
     </div>
   )
 }

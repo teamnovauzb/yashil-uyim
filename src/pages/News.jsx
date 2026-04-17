@@ -2,25 +2,32 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useT } from '../lib/prefs'
 import XButton from '../components/XButton'
+import ImageLightbox from '../components/ImageLightbox'
 
 function formatDate(dateStr) {
   const d = new Date(dateStr)
   return d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-function NewsCard({ item }) {
+function NewsCard({ item, onOpenImage }) {
   const [expanded, setExpanded] = useState(false)
   const preview = item.content.length > 200 ? item.content.slice(0, 200) + '...' : item.content
 
   return (
     <article className="bg-white rounded-2xl border border-[#B7E4C7] overflow-hidden hover:shadow-md transition-shadow">
       {item.image_url && (
-        <img
-          src={item.image_url}
-          alt={item.title}
-          className="w-full h-48 object-cover"
-          onError={e => { e.target.style.display = 'none' }}
-        />
+        <button
+          type="button"
+          onClick={() => onOpenImage(item.image_url, item.title)}
+          className="block w-full"
+        >
+          <img
+            src={item.image_url}
+            alt={item.title}
+            className="w-full h-48 object-cover hover:opacity-90 transition-opacity cursor-zoom-in"
+            onError={e => { e.target.style.display = 'none' }}
+          />
+        </button>
       )}
       {!item.image_url && (
         <div className="w-full h-32 bg-gradient-to-br from-[#2D6A4F] to-[#52B788] flex items-center justify-center">
@@ -53,6 +60,7 @@ function NewsCard({ item }) {
 export default function News() {
   const [news, setNews] = useState([])
   const [loading, setLoading] = useState(true)
+  const [lightbox, setLightbox] = useState(null)
   const t = useT()
 
   useEffect(() => {
@@ -92,11 +100,18 @@ export default function News() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {news.map(item => (
-              <NewsCard key={item.id} item={item} />
+              <NewsCard
+                key={item.id}
+                item={item}
+                onOpenImage={(src, alt) => setLightbox({ src, alt })}
+              />
             ))}
           </div>
         )}
       </div>
+      {lightbox && (
+        <ImageLightbox src={lightbox.src} alt={lightbox.alt} onClose={() => setLightbox(null)} />
+      )}
     </div>
   )
 }

@@ -8,13 +8,13 @@ const slides = [
     bg: 'from-[#1B4332] via-[#2D6A4F] to-[#40916C]',
   },
   {
-    emoji: '🎟️',
-    title: 'Bepul chipta oling',
-    desc: 'Festival kirishi mutlaqo bepul. Faqat ro\'yxatdan o\'ting — joylar cheklangan!',
+    emoji: '🌍',
+    title: 'Chipta oling — tabiatga yordam',
+    desc: 'Har bir chipta — bu festivalni qo\'llab-quvvatlash va tabiatga g\'amxo\'rlik. Joylar cheklangan!',
     bg: 'from-[#2D6A4F] via-[#40916C] to-[#52B788]',
   },
   {
-    emoji: '📋',
+    emoji: '🎤',
     title: 'Ma\'ruzalar & Master-klasslar',
     desc: 'Ekologlar, arxitektorlar va fermerlar bilan jonli suhbatlar, amaliy master-klasslar va musiqa.',
     bg: 'from-[#40916C] via-[#52B788] to-[#74C69D]',

@@ -344,7 +344,7 @@ export default function Home() {
           </h2>
           <p className="text-[#2D6A4F] leading-relaxed mb-6">
             Yashil Uyim — ekologiya, barqaror rivojlanish va tabiatga mehr mavzularida
-            o'tkaziladigan yillik festival. Biz hammani tabiat bilan uyg'un, ekologik jihatdan
+            o'tkaziladigan oylik festival. Biz hammani tabiat bilan uyg'un, ekologik jihatdan
             mas'uliyatli turmush tarziga undaymiz.
           </p>
           <p className="text-[#2D6A4F] leading-relaxed mb-8">

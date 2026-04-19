@@ -6,6 +6,7 @@ const slides = [
     title: 'Yashil Uyimga xush kelibsiz!',
     desc: 'Ekologiya, barqaror turmush tarzi va yashil texnologiyalar festivali. Har oy Toshkentda.',
     bg: 'from-[#1B4332] via-[#2D6A4F] to-[#40916C]',
+    image: '/intro.png',
   },
   {
     emoji: '🌍',
@@ -46,14 +47,27 @@ export default function Onboarding({ onDone }) {
 
   return (
     <div
-      className={`fixed inset-0 z-[150] flex flex-col items-center justify-between bg-gradient-to-br ${slide.bg} transition-all duration-500 text-white px-6 pb-12 pt-16`}
+      className={`fixed inset-0 z-[150] flex flex-col items-center justify-between bg-gradient-to-br ${slide.bg} transition-all duration-500 text-white px-6 pb-12 pt-16 overflow-hidden`}
     >
+      {/* Background image (slide 1) */}
+      {slide.image && (
+        <>
+          <img
+            src={slide.image}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {/* Dark gradient for text legibility: subtle at top, strong at bottom */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/85" />
+        </>
+      )}
+
       {/* Skip button */}
-      <div className="w-full flex justify-end">
+      <div className="relative w-full flex justify-end">
         {current < slides.length - 1 && (
           <button
             onClick={skip}
-            className="text-white/60 text-sm font-medium hover:text-white transition-colors"
+            className="text-white text-sm font-medium px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm hover:bg-black/50 transition-colors"
           >
             O'tkazib yuborish
           </button>
@@ -62,21 +76,28 @@ export default function Onboarding({ onDone }) {
 
       {/* Slide content */}
       <div
-        className={`flex-1 flex flex-col items-center justify-center text-center transition-opacity duration-200 ${
+        className={`relative flex-1 flex flex-col items-center justify-end text-center pb-6 transition-opacity duration-200 ${
           animating ? 'opacity-0' : 'opacity-100'
         }`}
       >
-        <div className="text-8xl mb-8">{slide.emoji}</div>
-        <h1 className="text-2xl md:text-3xl font-bold mb-4 leading-tight">
+        {!slide.image && <div className="text-8xl mb-8">{slide.emoji}</div>}
+        {slide.image && <div className="text-5xl mb-4 drop-shadow-lg">{slide.emoji}</div>}
+        <h1
+          className="text-2xl md:text-3xl font-bold mb-4 leading-tight"
+          style={slide.image ? { textShadow: '0 2px 12px rgba(0,0,0,0.8)' } : undefined}
+        >
           {slide.title}
         </h1>
-        <p className="text-white/80 text-base leading-relaxed max-w-xs">
+        <p
+          className="text-white/95 text-base leading-relaxed max-w-xs"
+          style={slide.image ? { textShadow: '0 1px 6px rgba(0,0,0,0.9)' } : undefined}
+        >
           {slide.desc}
         </p>
       </div>
 
       {/* Bottom controls */}
-      <div className="w-full flex flex-col items-center gap-6">
+      <div className="relative w-full flex flex-col items-center gap-6">
         {/* Dots */}
         <div className="flex gap-2">
           {slides.map((_, i) => (

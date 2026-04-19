@@ -72,6 +72,9 @@ export default function App() {
       sessionStorage.removeItem('splash_shown')
       sessionStorage.removeItem('tg_popup_shown')
       setShowSplash(true)
+      // Force onboarding to show, regardless of contact state
+      // (contact may be re-hydrated from DB, so we can't rely on /contact re-triggering it)
+      setShowOnboarding(true)
       // Reset contact cache so the contact screen shows again
       const k = tgUserAtBoot?.id ? `tg_contact_${tgUserAtBoot.id}` : null
       if (k) localStorage.removeItem(k)

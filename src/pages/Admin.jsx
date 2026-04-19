@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Leaf, RefreshCw, LogOut, Shield, LayoutDashboard, Ticket as TicketIcon,
-  CalendarCheck, User as UserIcon,
+  CalendarCheck, User as UserIcon, QrCode,
 } from 'lucide-react'
 import { getTelegramUser, closeMiniApp, isTelegram } from '../lib/telegram'
 import { loadAdmins, isAdmin, isSuperAdmin } from '../lib/admins'
@@ -10,12 +10,14 @@ import TicketsView from './admin/TicketsView'
 import OverviewView from './admin/OverviewView'
 import EventsView from './admin/EventsView'
 import AdminProfileView from './admin/AdminProfileView'
+import ScannerView from './admin/ScannerView'
 
 const SAFE_TOP = 'max(env(safe-area-inset-top), 4rem)'
 
 const VIEWS = [
   { key: 'overview', labelKey: 'overview', Icon: LayoutDashboard, Component: OverviewView },
   { key: 'tickets',  labelKey: 'tickets',  Icon: TicketIcon,      Component: TicketsView },
+  { key: 'scanner',  label:    'Skaner',   Icon: QrCode,          Component: ScannerView },
   { key: 'events',   labelKey: 'program',  Icon: CalendarCheck,   Component: EventsView },
   { key: 'profile',  labelKey: 'profile',  Icon: UserIcon,        Component: AdminProfileView },
 ]
@@ -120,7 +122,7 @@ export default function Admin() {
       {/* Bottom tab bar */}
       <nav className="fixed bottom-0 left-0 right-0 z-30 bg-gray-900/95 backdrop-blur border-t border-gray-800">
         <ul className="flex justify-around items-stretch">
-          {visibleViews.map(({ key, labelKey, Icon }) => {
+          {visibleViews.map(({ key, labelKey, label, Icon }) => {
             const active = view === key
             return (
               <li key={key} className="flex-1">
@@ -131,7 +133,7 @@ export default function Admin() {
                   }`}
                 >
                   <Icon size={20} strokeWidth={active ? 2.4 : 1.8} />
-                  <span>{t(labelKey)}</span>
+                  <span>{label || t(labelKey)}</span>
                 </button>
               </li>
             )

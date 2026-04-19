@@ -19,15 +19,19 @@ model User {
 }
 
 model Ticket {
-  id           BigInt    @id @default(autoincrement())
-  ticketNumber Int?      @unique @map("ticket_number")
-  fullName     String    @map("full_name")
-  phone        String
-  ticketCount  Int       @default(1) @map("ticket_count")
-  status       String    @default("pending")
-  chatId       BigInt?   @map("chat_id")
-  receiptUrl   String?   @map("receipt_url")
-  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  id              BigInt    @id @default(autoincrement())
+  ticketNumber    Int?      @unique @map("ticket_number")
+  fullName        String    @map("full_name")
+  phone           String
+  ticketCount     Int       @default(1) @map("ticket_count")
+  status          String    @default("pending")
+  chatId          BigInt?   @map("chat_id")
+  receiptUrl      String?   @map("receipt_url")
+  qrToken         String?   @unique @map("qr_token")
+  qrUrl           String?   @map("qr_url")
+  checkedInCount  Int       @default(0) @map("checked_in_count")
+  lastCheckinAt   DateTime? @map("last_checkin_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@map("tickets")
 }

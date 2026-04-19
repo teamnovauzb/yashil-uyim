@@ -15,8 +15,10 @@
   "dependencies": {
     "@prisma/client": "^7.7.0",
     "@supabase/supabase-js": "^2.103.0",
+    "html5-qrcode": "^2.3.8",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.8.0",
+    "qrcode": "^1.5.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-hook-form": "^7.72.1",

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Users, Ticket, Clock, CheckCircle2, XCircle, Newspaper, CalendarDays, TrendingUp } from 'lucide-react'
+import { Users, Ticket, Clock, CheckCircle2, XCircle, Newspaper, CalendarDays, TrendingUp, DoorOpen } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
 export default function OverviewView({ setView }) {
@@ -12,7 +12,7 @@ export default function OverviewView({ setView }) {
     async function load() {
       const [usersRes, ticketsRes, newsRes, progRes] = await Promise.all([
         supabase.from('users').select('telegram_id, created_at'),
-        supabase.from('tickets').select('id, status, ticket_count, created_at'),
+        supabase.from('tickets').select('id, status, ticket_count, checked_in_count, created_at'),
         supabase.from('news').select('id'),
         supabase.from('programs').select('id'),
       ])
@@ -23,11 +23,13 @@ export default function OverviewView({ setView }) {
       const approved = tickets.filter(t => t.status === 'approved')
       const fake = tickets.filter(t => t.status === 'fake')
       const sold = approved.reduce((sum, t) => sum + (t.ticket_count || 0), 0)
+      const present = approved.reduce((sum, t) => sum + (t.checked_in_count || 0), 0)
 
       setStats({
         users: users.length, tickets: tickets.length,
         pending: pending.length, approved: approved.length, fake: fake.length,
-        sold, news: (newsRes.data || []).length, programs: (progRes.data || []).length,
+        sold, present,
+        news: (newsRes.data || []).length, programs: (progRes.data || []).length,
       })
 
       const days = []
@@ -103,6 +105,7 @@ export default function OverviewView({ setView }) {
       <div>
         <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Batafsil</p>
         <div className="grid grid-cols-2 gap-3">
+          <StatCard Icon={DoorOpen}     label="Hozir ichkarida"  value={stats.present}  accent="emerald" onClick={go('scanner')} />
           <StatCard Icon={Ticket}       label="Jami chiptalar"   value={stats.tickets}  accent="sky"     onClick={go('tickets')} />
           <StatCard Icon={Clock}        label="Kutilmoqda"       value={stats.pending}  accent="amber"   onClick={go('tickets', { tab: 'pending' })} />
           <StatCard Icon={CheckCircle2} label="Tasdiqlangan"     value={stats.approved} accent="emerald" onClick={go('tickets', { tab: 'approved' })} />

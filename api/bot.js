@@ -1,3 +1,5 @@
+import { generateToken, generateAndStoreQr } from './_qr.js'
+
 const BOT_TOKEN = process.env.BOT_TOKEN
 const APP_URL = 'https://yashiluyim.vercel.app'
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL
@@ -24,6 +26,26 @@ async function updateTicketStatus(ticketNumber, status) {
       'Authorization': `Bearer ${SUPABASE_KEY}`,
     },
     body: JSON.stringify({ status }),
+  })
+}
+
+async function patchTicketByNumber(ticketNumber, payload) {
+  await fetch(`${SUPABASE_URL}/rest/v1/tickets?ticket_number=eq.${ticketNumber}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type':  'application/json',
+      'apikey':        SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+    },
+    body: JSON.stringify(payload),
+  })
+}
+
+async function sendPhoto(chatId, photoUrl, caption) {
+  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chatId, photo: photoUrl, caption, parse_mode: 'HTML' }),
   })
 }
 
@@ -92,22 +114,37 @@ export default async function handler(req, res) {
         ? '25-aprel · Toshkent'
         : `${d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long' })} · ${festAddress}`
 
-      const ticketMsg =
-        `━━━━━━━━━━━━━━━━━━━━\n` +
-        `🌿 <b>YASHIL UYIM</b>\n` +
-        `   Ekologik Festival\n` +
-        `━━━━━━━━━━━━━━━━━━━━\n\n` +
-        `🎟 <b>Chipta № #${ticketNum}</b>\n\n` +
-        `👤 <b>${full_name}</b>\n` +
+      const token = generateToken()
+      let qrUrl = null
+      try {
+        qrUrl = await generateAndStoreQr(token, ticketNum)
+      } catch (e) {
+        console.error('QR generation failed:', e)
+      }
+
+      await patchTicketByNumber(ticketNum, {
+        status: 'approved',
+        qr_token: token,
+        qr_url: qrUrl,
+        checked_in_count: 0,
+      })
+
+      const caption =
+        `🎟 <b>Chiptangiz tasdiqlandi!</b>\n\n` +
+        `🌿 <b>YASHIL UYIM</b> · Ekologik Festival\n\n` +
+        `🎫 Chipta № <b>#${ticketNum}</b>\n` +
+        `👤 ${full_name}\n` +
         (username ? `✈️ @${username}\n` : '') +
         `📱 ${phone}\n` +
-        `🎫 ${ticket_count} ta chipta\n\n` +
+        `👥 ${ticket_count} kishi\n` +
         `📅 <b>${dateLabel}</b>\n\n` +
-        `━━━━━━━━━━━━━━━━━━━━\n` +
-        `Festival kunida shu xabarni ko'rsating! 🌱`
+        `Festival kunida shu QR kodni ko'rsating 👇`
 
-      await updateTicketStatus(ticketNum, 'approved')
-      await sendMessage(chatId, ticketMsg)
+      if (qrUrl) {
+        await sendPhoto(chatId, qrUrl, caption)
+      } else {
+        await sendMessage(chatId, caption + `\n\n⚠️ QR kod ilovada mavjud (Profil → Mening chiptalarim)`)
+      }
       await sendMessage(message.chat.id, `✅ #${ticketNum} — chipta yuborildi.`)
     }
 

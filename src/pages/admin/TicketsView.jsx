@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import {
   RefreshCw, Clock, CheckCircle2, XCircle, User, Phone, Hash, Ticket, ImageOff,
-  Check, X, TrendingUp, DollarSign, Search, Trash2, CheckSquare, Square,
+  Check, X, TrendingUp, DollarSign, Search, Trash2, CheckSquare, Square, DoorOpen,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { isSuperAdmin } from '../../lib/admins'
@@ -301,12 +301,25 @@ export default function TicketsView({ initial, tgUser }) {
                       <X size={16} strokeWidth={2.5} />{acting === ticket.id ? '...' : 'Fake'}
                     </button>
                   </div>
+                ) : ticket.status === 'approved' ? (
+                  <div className="flex items-center justify-between gap-2 px-4 py-3 text-sm bg-emerald-400/5">
+                    <span className="flex items-center gap-2 font-semibold text-emerald-400">
+                      <CheckCircle2 size={16} /> Tasdiqlangan
+                    </span>
+                    <span className="flex items-center gap-1.5 text-xs">
+                      <DoorOpen size={12} className="text-gray-500" />
+                      <span className={`font-mono font-semibold ${
+                        (ticket.checked_in_count || 0) >= ticket.ticket_count
+                          ? 'text-emerald-400'
+                          : (ticket.checked_in_count || 0) > 0 ? 'text-amber-400' : 'text-gray-500'
+                      }`}>
+                        {ticket.checked_in_count || 0}/{ticket.ticket_count}
+                      </span>
+                    </span>
+                  </div>
                 ) : (
-                  <div className={`flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold ${
-                    ticket.status === 'approved' ? 'text-emerald-400 bg-emerald-400/5' : 'text-rose-400 bg-rose-400/5'
-                  }`}>
-                    {ticket.status === 'approved' ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
-                    {ticket.status === 'approved' ? 'Tasdiqlangan' : 'Fake'}
+                  <div className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-rose-400 bg-rose-400/5">
+                    <XCircle size={16} /> Fake
                   </div>
                 )}
               </article>

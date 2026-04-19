@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Phone, IdCard, BadgeCheck, Ticket, Newspaper, MessageSquare, Sun, Moon, Languages } from 'lucide-react'
+import { Phone, IdCard, BadgeCheck, Ticket, Newspaper, MessageSquare, Sun, Moon, Languages, QrCode } from 'lucide-react'
 import { getTelegramUser, isTelegram } from '../lib/telegram'
 import { getCachedPhone, isContacted, loadContactFromDb, markContacted } from '../lib/contact'
 import { supabase } from '../lib/supabase'
 import { usePrefs, useT } from '../lib/prefs'
 import FeedbackPanel from '../components/FeedbackPanel'
+import ImageLightbox from '../components/ImageLightbox'
 
 const LANGS = [
   { code: 'uz', label: "O'zbek"  },
@@ -21,6 +22,7 @@ export default function Profile() {
   const [phone, setPhone] = useState(getCachedPhone(tgUser))
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
+  const [qrLightbox, setQrLightbox] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -32,7 +34,7 @@ export default function Profile() {
       if (tgUser?.id) {
         const { data } = await supabase
           .from('tickets')
-          .select('ticket_number, full_name, ticket_count, status, created_at')
+          .select('ticket_number, full_name, ticket_count, status, qr_url, checked_in_count, created_at')
           .eq('chat_id', tgUser.id)
           .order('created_at', { ascending: false })
         if (!cancelled) setTickets(data || [])
@@ -145,15 +147,32 @@ export default function Profile() {
             </div>
           ) : (
             <ul className="space-y-2">
-              {tickets.map((tk) => (
-                <li key={tk.ticket_number} className="bg-white rounded-2xl p-4 border border-[#B7E4C7] flex items-center justify-between">
-                  <div>
-                    <p className="font-bold text-[#2D6A4F]">#{tk.ticket_number}</p>
-                    <p className="text-xs text-gray-400">{tk.ticket_count} · {tk.full_name}</p>
-                  </div>
-                  <StatusBadge status={tk.status} />
-                </li>
-              ))}
+              {tickets.map((tk) => {
+                const checkedIn = tk.checked_in_count || 0
+                return (
+                  <li key={tk.ticket_number} className="bg-white rounded-2xl p-4 border border-[#B7E4C7] flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-[#2D6A4F]">#{tk.ticket_number}</p>
+                      <p className="text-xs text-gray-400">{tk.ticket_count} · {tk.full_name}</p>
+                      {tk.status === 'approved' && checkedIn > 0 && (
+                        <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">
+                          {checkedIn}/{tk.ticket_count} kirgan
+                        </p>
+                      )}
+                    </div>
+                    {tk.status === 'approved' && tk.qr_url && (
+                      <button
+                        onClick={() => setQrLightbox({ src: tk.qr_url, alt: `Chipta #${tk.ticket_number}` })}
+                        className="w-10 h-10 rounded-xl bg-[#D8F3DC] text-[#2D6A4F] flex items-center justify-center shrink-0"
+                        aria-label="QR kodni ko'rish"
+                      >
+                        <QrCode size={18} />
+                      </button>
+                    )}
+                    <StatusBadge status={tk.status} />
+                  </li>
+                )
+              })}
             </ul>
           )}
         </div>
@@ -175,6 +194,10 @@ export default function Profile() {
           <FeedbackPanel />
         </div>
       </div>
+
+      {qrLightbox && (
+        <ImageLightbox src={qrLightbox.src} alt={qrLightbox.alt} onClose={() => setQrLightbox(null)} />
+      )}
     </div>
   )
 }

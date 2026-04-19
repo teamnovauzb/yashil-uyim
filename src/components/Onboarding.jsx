@@ -13,12 +13,14 @@ const slides = [
     title: 'Chipta oling — tabiatga yordam',
     desc: 'Har bir chipta — bu festivalni qo\'llab-quvvatlash va tabiatga g\'amxo\'rlik. Joylar cheklangan!',
     bg: 'from-[#2D6A4F] via-[#40916C] to-[#52B788]',
+    image: '/2.png',
   },
   {
     emoji: '🎤',
     title: 'Ma\'ruzalar & Master-klasslar',
     desc: 'Ekologlar, arxitektorlar va fermerlar bilan jonli suhbatlar, amaliy master-klasslar va musiqa.',
     bg: 'from-[#40916C] via-[#52B788] to-[#74C69D]',
+    image: '/3.png',
   },
 ]
 
@@ -62,17 +64,8 @@ export default function Onboarding({ onDone }) {
         </>
       )}
 
-      {/* Skip button */}
-      <div className="relative w-full flex justify-end">
-        {current < slides.length - 1 && (
-          <button
-            onClick={skip}
-            className="text-white text-sm font-medium px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm hover:bg-black/50 transition-colors"
-          >
-            O'tkazib yuborish
-          </button>
-        )}
-      </div>
+      {/* Top spacer (skip moved below Next) */}
+      <div className="relative w-full h-4" />
 
       {/* Slide content */}
       <div
@@ -119,6 +112,19 @@ export default function Onboarding({ onDone }) {
         >
           {current < slides.length - 1 ? 'Keyingisi →' : '🌿 Boshlash'}
         </button>
+
+        {/* Skip link (below Next) */}
+        {current < slides.length - 1 ? (
+          <button
+            onClick={skip}
+            className="text-white/90 text-sm font-medium hover:text-white transition-colors"
+            style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}
+          >
+            O'tkazib yuborish
+          </button>
+        ) : (
+          <div className="h-5" />
+        )}
       </div>
     </div>
   )

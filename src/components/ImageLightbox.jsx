@@ -3,7 +3,8 @@ import { X, Download } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { openExternal } from '../lib/telegram'
 
-export default function ImageLightbox({ src, alt, onClose }) {
+export default function ImageLightbox({ src, alt, onClose, mediaType = 'image' }) {
+  const isVideo = mediaType === 'video'
   useEffect(() => {
     // Push a dummy history entry; popstate (back button) closes the lightbox
     // instead of navigating away from the underlying page.
@@ -52,12 +53,23 @@ export default function ImageLightbox({ src, alt, onClose }) {
         paddingRight:  '1rem',
       }}
     >
-      <img
-        src={src}
-        alt={alt}
-        onClick={(e) => e.stopPropagation()}
-        className="max-w-full max-h-full object-contain rounded-lg"
-      />
+      {isVideo ? (
+        <video
+          src={src}
+          controls
+          autoPlay
+          playsInline
+          onClick={(e) => e.stopPropagation()}
+          className="max-w-full max-h-full rounded-lg"
+        />
+      ) : (
+        <img
+          src={src}
+          alt={alt}
+          onClick={(e) => e.stopPropagation()}
+          className="max-w-full max-h-full object-contain rounded-lg"
+        />
+      )}
 
       {/* Bottom action bar — clear of all Telegram chrome */}
       <div
@@ -65,12 +77,14 @@ export default function ImageLightbox({ src, alt, onClose }) {
         style={{ bottom: 'max(env(safe-area-inset-bottom), 1rem)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          onClick={download}
-          className="flex items-center gap-2 bg-white text-[#1B2D1F] font-semibold px-5 py-3 rounded-full shadow-2xl active:scale-95 transition-transform"
-        >
-          <Download size={18} /> Yuklab olish
-        </button>
+        {!isVideo && (
+          <button
+            onClick={download}
+            className="flex items-center gap-2 bg-white text-[#1B2D1F] font-semibold px-5 py-3 rounded-full shadow-2xl active:scale-95 transition-transform"
+          >
+            <Download size={18} /> Yuklab olish
+          </button>
+        )}
         <button
           onClick={onClose}
           className="w-12 h-12 rounded-full bg-white/15 backdrop-blur text-white flex items-center justify-center shadow-2xl active:scale-95 transition-transform"

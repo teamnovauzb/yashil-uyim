@@ -112,3 +112,15 @@ model Setting {
 
   @@map("settings")
 }
+
+model GalleryItem {
+  id           BigInt   @id @default(autoincrement())
+  mediaType    String   @map("media_type")
+  mediaUrl     String   @map("media_url")
+  thumbnailUrl String?  @map("thumbnail_url")
+  caption      String?
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("gallery")
+}

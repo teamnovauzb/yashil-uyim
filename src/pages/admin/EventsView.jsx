@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import { Newspaper, CalendarDays, Settings as SettingsIcon } from 'lucide-react'
+import { Newspaper, CalendarDays, Settings as SettingsIcon, Images } from 'lucide-react'
 import NewsView from './NewsView'
 import ProgramView from './ProgramView'
 import SettingsView from './SettingsView'
+import GalleryView from './GalleryView'
 
 const TABS = [
   { key: 'news',     label: 'Yangiliklar', Icon: Newspaper,    Component: NewsView },
   { key: 'program',  label: 'Dastur',      Icon: CalendarDays, Component: ProgramView },
+  { key: 'gallery',  label: 'Galereya',    Icon: Images,       Component: GalleryView },
   { key: 'settings', label: 'Sozlama',     Icon: SettingsIcon, Component: SettingsView },
 ]
 
@@ -17,7 +19,7 @@ export default function EventsView() {
   return (
     <div>
       <div className="px-4 pt-4 pb-2">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {TABS.map(({ key, label, Icon }) => {
             const active = tab === key
             return (

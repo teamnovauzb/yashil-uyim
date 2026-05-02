@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Ticket, CalendarDays, Newspaper, Lightbulb, Camera, Leaf, MapPin, ExternalLink } from 'lucide-react'
+import { Ticket, CalendarDays, Newspaper, Lightbulb, Camera, Leaf, MapPin, ExternalLink, PlayCircle } from 'lucide-react'
 import CountdownTimer from '../components/CountdownTimer'
 import XButton from '../components/XButton'
+import ImageLightbox from '../components/ImageLightbox'
 import { isTelegram, openExternal } from '../lib/telegram'
 import { getSetting } from '../lib/settings'
 import { useT } from '../lib/prefs'
+import { supabase } from '../lib/supabase'
 
 const instagramPosts = [
   {
@@ -67,6 +69,8 @@ export default function Home() {
   const [showPopup, setShowPopup] = useState(false)
   const [venue, setVenue] = useState({ address: '', lat: '', lng: '' })
   const [festivalDate, setFestivalDate] = useState('2026-04-25T09:00:00')
+  const [galleryItems, setGalleryItems] = useState(null) // null = loading, [] = empty
+  const [lightbox, setLightbox] = useState(null)
   const navigate = useNavigate()
   const inTelegram = isTelegram()
   const countdown = useCountdownTo(festivalDate)
@@ -83,6 +87,39 @@ export default function Home() {
       if (date) setFestivalDate(date)
     })
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    supabase
+      .from('gallery')
+      .select('id, media_type, media_url, thumbnail_url, caption')
+      .order('sort_order', { ascending: false })
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) setGalleryItems([])
+        else setGalleryItems(data || [])
+      })
+    return () => { cancelled = true }
+  }, [])
+
+  // Show DB items when present; otherwise fall back to the hardcoded photos
+  // so the section is never empty even on a fresh deploy.
+  const displayGallery = (galleryItems && galleryItems.length > 0)
+    ? galleryItems.map(g => ({
+        id:       g.id,
+        type:     g.media_type,
+        src:      g.media_url,
+        poster:   g.thumbnail_url || (g.media_type === 'image' ? g.media_url : null),
+        caption:  g.caption || '',
+      }))
+    : instagramPosts.map((p, i) => ({
+        id:       `fallback-${i}`,
+        type:     'image',
+        src:      p.img,
+        poster:   p.img,
+        caption:  p.caption,
+      }))
 
   useEffect(() => {
     if (!inTelegram) return
@@ -206,6 +243,74 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Gallery (admin-managed, falls back to hardcoded photos when empty) */}
+      <section className="py-16 px-4 bg-[#F0FFF4]">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 mb-3">
+              <Camera size={22} className="text-[#2D6A4F]" />
+              <span className="text-sm font-semibold text-[#2D6A4F] tracking-widest uppercase">@yashil_uyim</span>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#1B2D1F] mb-2">
+              {t('instagramOurs')}
+            </h2>
+            <p className="text-[#40916C]">{t('festivalMoments')}</p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-1.5 md:gap-2 mb-8">
+            {displayGallery.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setLightbox(item)}
+                className="relative aspect-square overflow-hidden rounded-lg group bg-gray-200"
+              >
+                {item.poster ? (
+                  <img
+                    src={item.poster}
+                    alt={item.caption}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    loading="lazy"
+                  />
+                ) : (
+                  <video
+                    src={item.src}
+                    preload="metadata"
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                )}
+                {item.type === 'video' && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <PlayCircle size={36} className="text-white drop-shadow-lg" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
+                  {item.caption && (
+                    <span className="text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center px-2">
+                      {item.caption}
+                    </span>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <a
+              href="https://www.instagram.com/yashil_uyim"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] text-white px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity shadow-lg"
+            >
+              <Camera size={18} />
+              {t('followUs')}
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
@@ -235,59 +340,6 @@ export default function Home() {
                 </Link>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Instagram Gallery */}
-      <section className="py-16 px-4 bg-[#F0FFF4]">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 mb-3">
-              <Camera size={22} className="text-[#2D6A4F]" />
-              <span className="text-sm font-semibold text-[#2D6A4F] tracking-widest uppercase">@yashil_uyim</span>
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-[#1B2D1F] mb-2">
-              {t('instagramOurs')}
-            </h2>
-            <p className="text-[#40916C]">{t('festivalMoments')}</p>
-          </div>
-
-          {/* Photo grid */}
-          <div className="grid grid-cols-3 gap-1.5 md:gap-2 mb-8">
-            {instagramPosts.map((post, i) => (
-              <a
-                key={i}
-                href="https://www.instagram.com/yashil_uyim"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative aspect-square overflow-hidden rounded-lg group"
-              >
-                <img
-                  src={post.img}
-                  alt={post.caption}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
-                  <span className="text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center px-2">
-                    {post.caption}
-                  </span>
-                </div>
-              </a>
-            ))}
-          </div>
-
-          <div className="text-center">
-            <a
-              href="https://www.instagram.com/yashil_uyim"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] text-white px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity shadow-lg"
-            >
-              <Camera size={18} />
-              {t('followUs')}
-            </a>
           </div>
         </div>
       </section>
@@ -364,6 +416,15 @@ export default function Home() {
           </a>
         </div>
       </section>
+
+      {lightbox && (
+        <ImageLightbox
+          src={lightbox.src}
+          alt={lightbox.caption || ''}
+          mediaType={lightbox.type}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { generateToken, generateAndStoreQr } from './_qr.js'
+import { generateSeats } from './_qr.js'
 
 const BOT_TOKEN = process.env.BOT_TOKEN
 const APP_URL = 'https://yashiluyim.vercel.app'
@@ -39,6 +39,39 @@ async function patchTicketByNumber(ticketNumber, payload) {
     },
     body: JSON.stringify(payload),
   })
+}
+
+async function findTicketIdByNumber(ticketNumber) {
+  const r = await fetch(
+    `${SUPABASE_URL}/rest/v1/tickets?ticket_number=eq.${ticketNumber}&select=id`,
+    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+  )
+  const data = await r.json()
+  return Array.isArray(data) && data[0] ? data[0].id : null
+}
+
+async function deleteSeats(ticketId) {
+  await fetch(`${SUPABASE_URL}/rest/v1/ticket_seats?ticket_id=eq.${ticketId}`, {
+    method: 'DELETE',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+  })
+}
+
+async function insertSeats(rows) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/ticket_seats`, {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'apikey':        SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Prefer':        'return=minimal',
+    },
+    body: JSON.stringify(rows),
+  })
+  if (!r.ok) {
+    const text = await r.text().catch(() => '')
+    throw new Error(`Seat insert failed: ${r.status} ${text}`)
+  }
 }
 
 async function sendPhoto(chatId, photoUrl, caption) {
@@ -92,16 +125,17 @@ export default async function handler(req, res) {
       await editMessageReplyMarkup(message.chat.id, message.message_id)
       await answerCallback(id, '✅ Allowed!')
 
-      // Parse ticket info from admin message caption
-      const caption = message.caption || message.text || ''
-      const clean = caption.replace(/<[^>]+>/g, '')
+      // Parse ticket info from the admin notification message
+      const adminText = message.caption || message.text || ''
+      const clean = adminText.replace(/<[^>]+>/g, '')
       const get = (label) => {
         const line = clean.split('\n').find(l => l.includes(label))
         return line ? line.split(label)[1].trim() : ''
       }
       const full_name    = get('Ism:')
       const phone        = get('Telefon:')
-      const ticket_count = get('Chipta soni:')
+      const ticketCountStr = get('Chipta soni:')
+      const seatCount    = Math.max(1, parseInt(ticketCountStr, 10) || 1)
       const usernameLine = clean.split('\n').find(l => l.startsWith('🆔 @'))
       const username     = usernameLine ? usernameLine.replace('🆔 @', '').trim() : null
 
@@ -114,36 +148,54 @@ export default async function handler(req, res) {
         ? '25-aprel · Toshkent'
         : `${d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long' })} · ${festAddress}`
 
-      const token = generateToken()
-      let qrUrl = null
+      let seats = []
       try {
-        qrUrl = await generateAndStoreQr(token, ticketNum)
+        seats = await generateSeats(ticketNum, seatCount)
       } catch (e) {
         console.error('QR generation failed:', e)
       }
 
+      // Persist seats (idempotent re-approval)
+      try {
+        const ticketId = await findTicketIdByNumber(ticketNum)
+        if (ticketId && seats.length) {
+          await deleteSeats(ticketId)
+          await insertSeats(seats.map(s => ({ ...s, ticket_id: ticketId })))
+        }
+      } catch (e) {
+        console.error('Seat persist failed:', e)
+      }
+
       await patchTicketByNumber(ticketNum, {
         status: 'approved',
-        qr_token: token,
-        qr_url: qrUrl,
+        qr_token: seats[0]?.qr_token || null,
+        qr_url:   seats[0]?.qr_url   || null,
         checked_in_count: 0,
       })
 
-      const caption =
+      const baseCaption =
         `🎟 <b>Chiptangiz tasdiqlandi!</b>\n\n` +
         `🌿 <b>YASHIL UYIM</b> · Ekologik Festival\n\n` +
         `🎫 Chipta № <b>#${ticketNum}</b>\n` +
         `👤 ${full_name}\n` +
         (username ? `✈️ @${username}\n` : '') +
         `📱 ${phone}\n` +
-        `👥 ${ticket_count} kishi\n` +
-        `📅 <b>${dateLabel}</b>\n\n` +
-        `Festival kunida shu QR kodni ko'rsating 👇`
+        `👥 ${seatCount} kishi\n` +
+        `📅 <b>${dateLabel}</b>`
 
-      if (qrUrl) {
-        await sendPhoto(chatId, qrUrl, caption)
+      if (!seats.length) {
+        await sendMessage(chatId, baseCaption + `\n\n⚠️ QR kod ilovada mavjud (Profil → Mening chiptalarim)`)
+      } else if (seats.length === 1) {
+        await sendPhoto(chatId, seats[0].qr_url, baseCaption + `\n\nFestival kunida shu QR kodni ko'rsating 👇`)
       } else {
-        await sendMessage(chatId, caption + `\n\n⚠️ QR kod ilovada mavjud (Profil → Mening chiptalarim)`)
+        await sendMessage(chatId,
+          baseCaption +
+          `\n\n📥 Sizga ${seatCount} ta QR kod yuborilmoqda — har biri bir kishiga, bir martagina ishlaydi.\n` +
+          `Kim bilan kelyapsiz, har biriga bittadan QR ulashing 👇`
+        )
+        for (const seat of seats) {
+          await sendPhoto(chatId, seat.qr_url, `🎟 <b>QR ${seat.seat_index}/${seatCount}</b> · #${ticketNum}`)
+        }
       }
       await sendMessage(message.chat.id, `✅ #${ticketNum} — chipta yuborildi.`)
     }

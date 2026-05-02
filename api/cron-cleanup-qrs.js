@@ -1,4 +1,8 @@
-// Daily cron — wipes QR artifacts 3 days after festival_date passes.
+// Daily cron — wipes ALL ticket data (rows, QR images, receipts) 3 days after
+// festival_date passes. Until that cutoff, the admin view keeps showing every
+// purchaser, their QR and their receipt; once the cutoff hits, the slate is
+// cleared so we don't keep customer phone numbers / receipts longer than needed.
+//
 // Wired in vercel.json under "crons". Vercel automatically sets the
 // `Authorization: Bearer ${CRON_SECRET}` header on cron invocations,
 // which we verify so manual hits without the secret are rejected.
@@ -27,9 +31,9 @@ async function getSetting(key, fallback = '') {
   }
 }
 
-async function listStorageObjects(prefix) {
-  // Lists up to 1000 objects under media/<prefix>
-  const r = await fetch(`${SUPABASE_URL}/storage/v1/object/list/media`, {
+async function listStorageObjects(bucket, prefix) {
+  // Lists up to 1000 objects in the bucket under <prefix>.
+  const r = await fetch(`${SUPABASE_URL}/storage/v1/object/list/${bucket}`, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify({ prefix, limit: 1000, offset: 0, sortBy: { column: 'name', order: 'asc' } }),
@@ -39,9 +43,9 @@ async function listStorageObjects(prefix) {
   return Array.isArray(data) ? data : []
 }
 
-async function deleteStorageObjects(paths) {
+async function deleteStorageObjects(bucket, paths) {
   if (!paths.length) return { ok: true, removed: 0 }
-  const r = await fetch(`${SUPABASE_URL}/storage/v1/object/media`, {
+  const r = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}`, {
     method: 'DELETE',
     headers: HEADERS,
     body: JSON.stringify({ prefixes: paths }),
@@ -53,20 +57,26 @@ async function deleteStorageObjects(paths) {
   return { ok: true, removed: paths.length }
 }
 
-async function deleteAllSeats() {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/ticket_seats?ticket_id=gte.0`, {
-    method: 'DELETE',
-    headers: { ...HEADERS, Prefer: 'return=minimal' },
-  })
-  return r.ok
+// Drains a bucket of every object under `prefix` in batches of 1000 until empty.
+async function emptyBucketPrefix(bucket, prefix) {
+  let totalRemoved = 0
+  for (let i = 0; i < 50; i++) { // safety cap: 50k objects max
+    const objs = await listStorageObjects(bucket, prefix)
+    if (!objs.length) break
+    const paths = objs.map(o => `${prefix}${o.name}`)
+    const r = await deleteStorageObjects(bucket, paths)
+    if (!r.ok) return { ok: false, removed: totalRemoved, error: r.error }
+    totalRemoved += r.removed
+    if (objs.length < 1000) break
+  }
+  return { ok: true, removed: totalRemoved }
 }
 
-async function clearTicketQrColumns() {
-  // Wipe legacy single-QR fields too so old approved tickets stop pointing at deleted images.
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/tickets?status=eq.approved`, {
-    method: 'PATCH',
+async function deleteAllTickets() {
+  // Cascade FK on ticket_seats wipes seat rows automatically.
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/tickets?id=gte.0`, {
+    method: 'DELETE',
     headers: { ...HEADERS, Prefer: 'return=minimal' },
-    body: JSON.stringify({ qr_token: null, qr_url: null }),
   })
   return r.ok
 }
@@ -98,24 +108,17 @@ export default async function handler(req, res) {
       })
     }
 
-    // Already cleaned? Bail quickly if there's nothing left.
-    const objs = await listStorageObjects('qr/')
-    const seatsCleared = await deleteAllSeats()
-    const ticketsCleared = await clearTicketQrColumns()
-
-    let storageResult = { ok: true, removed: 0 }
-    if (objs.length) {
-      const paths = objs.map(o => `qr/${o.name}`)
-      storageResult = await deleteStorageObjects(paths)
-    }
+    // Past the cutoff — wipe everything.
+    const ticketsCleared  = await deleteAllTickets()
+    const qrStorage       = await emptyBucketPrefix('media',    'qr/')
+    const receiptsStorage = await emptyBucketPrefix('receipts', '')
 
     return res.status(200).json({
       ok:             true,
       cutoff:         cutoff.toISOString(),
-      seatsCleared,
       ticketsCleared,
-      storage:        storageResult,
-      qrFilesFound:   objs.length,
+      qrStorage,
+      receiptsStorage,
     })
   } catch (e) {
     console.error('cron-cleanup-qrs error:', e)

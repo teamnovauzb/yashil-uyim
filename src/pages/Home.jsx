@@ -21,7 +21,7 @@ const instagramPosts = [
     caption: 'Ekologik festival 🎉',
   },
   {
-    img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80',
+    img: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400&q=80',
     caption: 'Tabiat go\'zalligi 🌸',
   },
   {

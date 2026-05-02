@@ -32,12 +32,23 @@ export default function Profile() {
         if (!cancelled && dbPhone) { markContacted(tgUser, dbPhone); setPhone(dbPhone) }
       }
       if (tgUser?.id) {
-        const { data } = await supabase
+        // Try the embedded query first (per-seat QRs). Fall back to a flat
+        // query if the ticket_seats table / FK doesn't exist yet (pre-migration).
+        const withSeats = await supabase
           .from('tickets')
-          .select('ticket_number, full_name, ticket_count, status, qr_url, checked_in_count, created_at')
+          .select('id, ticket_number, full_name, ticket_count, status, qr_url, checked_in_count, created_at, ticket_seats(seat_index, qr_url, checked_in_at)')
           .eq('chat_id', tgUser.id)
           .order('created_at', { ascending: false })
-        if (!cancelled) setTickets(data || [])
+        if (withSeats.error) {
+          const { data } = await supabase
+            .from('tickets')
+            .select('id, ticket_number, full_name, ticket_count, status, qr_url, checked_in_count, created_at')
+            .eq('chat_id', tgUser.id)
+            .order('created_at', { ascending: false })
+          if (!cancelled) setTickets(data || [])
+        } else if (!cancelled) {
+          setTickets(withSeats.data || [])
+        }
       }
       if (!cancelled) setLoading(false)
     }
@@ -149,27 +160,63 @@ export default function Profile() {
             <ul className="space-y-2">
               {tickets.map((tk) => {
                 const checkedIn = tk.checked_in_count || 0
+                const seats = Array.isArray(tk.ticket_seats)
+                  ? [...tk.ticket_seats].sort((a, b) => a.seat_index - b.seat_index)
+                  : []
+                const hasSeats = seats.length > 0
                 return (
-                  <li key={tk.ticket_number} className="bg-white rounded-2xl p-4 border border-[#B7E4C7] flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-[#2D6A4F]">#{tk.ticket_number}</p>
-                      <p className="text-xs text-gray-400">{tk.ticket_count} · {tk.full_name}</p>
-                      {tk.status === 'approved' && checkedIn > 0 && (
-                        <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">
-                          {checkedIn}/{tk.ticket_count} kirgan
-                        </p>
+                  <li key={tk.ticket_number} className="bg-white rounded-2xl p-4 border border-[#B7E4C7]">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-[#2D6A4F]">#{tk.ticket_number}</p>
+                        <p className="text-xs text-gray-400">{tk.ticket_count} · {tk.full_name}</p>
+                        {tk.status === 'approved' && checkedIn > 0 && (
+                          <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">
+                            {checkedIn}/{tk.ticket_count} kirgan
+                          </p>
+                        )}
+                      </div>
+                      {tk.status === 'approved' && !hasSeats && tk.qr_url && (
+                        <button
+                          onClick={() => setQrLightbox({ src: tk.qr_url, alt: `Chipta #${tk.ticket_number}` })}
+                          className="w-10 h-10 rounded-xl bg-[#D8F3DC] text-[#2D6A4F] flex items-center justify-center shrink-0"
+                          aria-label="QR kodni ko'rish"
+                        >
+                          <QrCode size={18} />
+                        </button>
                       )}
+                      <StatusBadge status={tk.status} />
                     </div>
-                    {tk.status === 'approved' && tk.qr_url && (
-                      <button
-                        onClick={() => setQrLightbox({ src: tk.qr_url, alt: `Chipta #${tk.ticket_number}` })}
-                        className="w-10 h-10 rounded-xl bg-[#D8F3DC] text-[#2D6A4F] flex items-center justify-center shrink-0"
-                        aria-label="QR kodni ko'rish"
-                      >
-                        <QrCode size={18} />
-                      </button>
+
+                    {tk.status === 'approved' && hasSeats && (
+                      <div className="grid grid-cols-3 gap-2 mt-3">
+                        {seats.map((s) => {
+                          const used = !!s.checked_in_at
+                          return (
+                            <button
+                              key={s.seat_index}
+                              onClick={() => s.qr_url && setQrLightbox({ src: s.qr_url, alt: `#${tk.ticket_number} · QR ${s.seat_index}/${tk.ticket_count}` })}
+                              disabled={!s.qr_url}
+                              className={`relative aspect-square rounded-xl border flex flex-col items-center justify-center gap-1 transition-all ${
+                                used
+                                  ? 'bg-gray-100 border-gray-200 text-gray-400'
+                                  : 'bg-[#D8F3DC] border-[#B7E4C7] text-[#2D6A4F] hover:bg-[#B7E4C7]'
+                              }`}
+                            >
+                              <QrCode size={20} className={used ? 'opacity-50' : ''} />
+                              <span className="text-[10px] font-bold">
+                                {s.seat_index}/{tk.ticket_count}
+                              </span>
+                              {used && (
+                                <span className="absolute -top-1 -right-1 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                                  ✓
+                                </span>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
                     )}
-                    <StatusBadge status={tk.status} />
                   </li>
                 )
               })}

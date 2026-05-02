@@ -43,9 +43,9 @@ export default function ScannerView({ tgUser }) {
       })
       const data = await r.json()
       if (!data.ok) {
-        setResult({ kind: data.reason || 'error', token })
+        setResult({ kind: data.reason || 'error', token, ticket: data.ticket, seat: data.seat })
       } else {
-        setResult({ kind: 'ready', token, ticket: data.ticket })
+        setResult({ kind: 'ready', token, ticket: data.ticket, seat: data.seat })
       }
     } catch {
       setResult({ kind: 'server_error', token })
@@ -95,12 +95,13 @@ export default function ScannerView({ tgUser }) {
         admitted:  data.admitted,
         total:     data.ticket.ticket_count,
         used:      data.ticket.checked_in_count,
+        seatIndex: data.seat?.seat_index,
         when:      Date.now(),
       }, ...h].slice(0, 10))
-      setResult({ kind: 'admitted', ticket: data.ticket, admitted: data.admitted })
+      setResult({ kind: 'admitted', ticket: data.ticket, seat: data.seat, admitted: data.admitted })
     } else {
       toast.error(data.reason || 'Xatolik')
-      setResult({ kind: data.reason || 'error', ticket: data.ticket || result.ticket })
+      setResult({ kind: data.reason || 'error', ticket: data.ticket || result.ticket, seat: data.seat || result.seat })
     }
   }
 
@@ -180,7 +181,7 @@ export default function ScannerView({ tgUser }) {
                 <div className="flex-1 min-w-0">
                   <p className="text-white truncate">{h.name || '—'}</p>
                   <p className="text-gray-500 text-[10px]">
-                    +{h.admitted} kishi · {h.used}/{h.total}
+                    {h.seatIndex ? `QR ${h.seatIndex}/${h.total}` : `+${h.admitted} kishi`} · {h.used}/{h.total}
                   </p>
                 </div>
                 <span className="text-[10px] text-gray-600 shrink-0">
@@ -196,7 +197,8 @@ export default function ScannerView({ tgUser }) {
 }
 
 function ResultPanel({ result, isSuper, onAdmit, onReset, onScanAgain, onClose }) {
-  const { kind, ticket } = result
+  const { kind, ticket, seat } = result
+  const isPerSeat = !!seat
 
   if (kind === 'not_found') {
     return (
@@ -209,16 +211,19 @@ function ResultPanel({ result, isSuper, onAdmit, onReset, onScanAgain, onClose }
   if (kind === 'not_approved') {
     return (
       <Banner color="amber" Icon={AlertCircle} title="Tasdiqlanmagan" subtitle="Bu chipta hali tasdiqlanmagan yoki rad etilgan">
-        <TicketInfo ticket={ticket} />
+        <TicketInfo ticket={ticket} seat={seat} />
         <BtnRow primary={{ label: 'Yana skan qilish', onClick: onScanAgain }} secondary={{ label: 'Yopish', onClick: onClose }} />
       </Banner>
     )
   }
 
   if (kind === 'already_used') {
+    const subtitle = isPerSeat
+      ? `QR ${seat.seat_index}/${ticket?.ticket_count || '?'} ishlatilgan`
+      : "Barcha kirishlar ishlatilgan"
     return (
-      <Banner color="rose" Icon={XCircle} title="To'liq foydalanilgan" subtitle="Barcha kirishlar ishlatilgan">
-        <TicketInfo ticket={ticket} />
+      <Banner color="rose" Icon={XCircle} title="Foydalanilgan" subtitle={subtitle}>
+        <TicketInfo ticket={ticket} seat={seat} />
         {isSuper && (
           <button onClick={onReset} className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold rounded-lg mb-2">
             <RotateCcw size={12} /> Reset
@@ -230,15 +235,36 @@ function ResultPanel({ result, isSuper, onAdmit, onReset, onScanAgain, onClose }
   }
 
   if (kind === 'admitted') {
+    const subtitle = isPerSeat && seat
+      ? `QR ${seat.seat_index}/${ticket?.ticket_count} kiritildi`
+      : `+${result.admitted} kishi muvaffaqiyatli`
     return (
-      <Banner color="emerald" Icon={CheckCircle2} title="Kiritildi ✓" subtitle={`+${result.admitted} kishi muvaffaqiyatli`}>
-        <TicketInfo ticket={ticket} />
+      <Banner color="emerald" Icon={CheckCircle2} title="Kiritildi ✓" subtitle={subtitle}>
+        <TicketInfo ticket={ticket} seat={seat} />
         <BtnRow primary={{ label: 'Yana skan qilish', onClick: onScanAgain }} secondary={{ label: 'Yopish', onClick: onClose }} />
       </Banner>
     )
   }
 
   if (kind === 'ready' && ticket) {
+    // Per-seat path: one scan = one admit
+    if (isPerSeat) {
+      return (
+        <Banner color="emerald" Icon={Check} title={`QR ${seat.seat_index}/${ticket.ticket_count}`} subtitle={`${ticket.checked_in_count || 0}/${ticket.ticket_count} kirgan`}>
+          <TicketInfo ticket={ticket} seat={seat} />
+          <button
+            onClick={() => onAdmit(1)}
+            className="w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-bold rounded-xl mb-2"
+          >
+            <Check size={16} strokeWidth={2.5} />
+            Kiritish
+          </button>
+          <BtnRow primary={{ label: 'Yana skan qilish', onClick: onScanAgain }} secondary={{ label: 'Yopish', onClick: onClose }} />
+        </Banner>
+      )
+    }
+
+    // Legacy single-QR path
     const remaining = ticket.ticket_count - ticket.checked_in_count
     return (
       <Banner color="emerald" Icon={Check} title="Ruxsat berish" subtitle={`${ticket.checked_in_count}/${ticket.ticket_count} kirgan`}>
@@ -310,13 +336,20 @@ function Banner({ color, Icon, title, subtitle, children }) {
   )
 }
 
-function TicketInfo({ ticket }) {
+function TicketInfo({ ticket, seat }) {
   if (!ticket) return null
   return (
     <div className="bg-gray-900/60 rounded-xl border border-gray-800 p-3 mb-3 space-y-1.5">
       <Row Icon={Hash}  label="Chipta №" value={ticket.ticket_number ? `#${ticket.ticket_number}` : '—'} />
       <Row Icon={User}  label="Ism"      value={ticket.full_name} />
       <Row Icon={Phone} label="Telefon"  value={ticket.phone} />
+      {seat && (
+        <Row
+          Icon={QrCode}
+          label="QR"
+          value={`${seat.seat_index}/${ticket.ticket_count}${seat.checked_in_at ? ' · ishlatilgan' : ''}`}
+        />
+      )}
     </div>
   )
 }

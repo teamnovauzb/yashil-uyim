@@ -33,7 +33,25 @@ model Ticket {
   lastCheckinAt   DateTime? @map("last_checkin_at") @db.Timestamptz(6)
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
+  seats           TicketSeat[]
+
   @@map("tickets")
+}
+
+model TicketSeat {
+  ticketId      BigInt    @map("ticket_id")
+  seatIndex     Int       @map("seat_index")
+  qrToken       String    @unique @map("qr_token")
+  qrUrl         String?   @map("qr_url")
+  checkedInAt   DateTime? @map("checked_in_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  ticket        Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@id([ticketId, seatIndex])
+  @@index([qrToken])
+  @@index([ticketId])
+  @@map("ticket_seats")
 }
 
 model Suggestion {

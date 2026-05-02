@@ -1,4 +1,4 @@
-import { generateToken, generateAndStoreQr } from './_qr.js'
+import { generateSeats } from './_qr.js'
 
 const BOT_TOKEN = process.env.BOT_TOKEN
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL
@@ -44,6 +44,33 @@ async function patchTicket(id, payload) {
   })
 }
 
+async function deleteSeats(ticketId) {
+  await fetch(`${SUPABASE_URL}/rest/v1/ticket_seats?ticket_id=eq.${ticketId}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey':        SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+    },
+  })
+}
+
+async function insertSeats(rows) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/ticket_seats`, {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'apikey':        SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Prefer':        'return=minimal',
+    },
+    body: JSON.stringify(rows),
+  })
+  if (!r.ok) {
+    const text = await r.text().catch(() => '')
+    throw new Error(`Seat insert failed: ${r.status} ${text}`)
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false })
 
@@ -54,18 +81,29 @@ export default async function handler(req, res) {
 
   try {
     if (action === 'allow') {
-      const token = generateToken()
-      let qrUrl = null
+      const seatCount = Math.max(1, Number(ticket_count) || 1)
+      let seats = []
       try {
-        qrUrl = await generateAndStoreQr(token, ticket_number || id)
+        seats = await generateSeats(ticket_number || id, seatCount)
       } catch (e) {
         console.error('QR generation failed:', e)
       }
 
+      // Replace any prior seats (idempotent re-approval), then insert fresh.
+      try {
+        await deleteSeats(id)
+        if (seats.length) {
+          await insertSeats(seats.map(s => ({ ...s, ticket_id: id })))
+        }
+      } catch (e) {
+        console.error('Seat persist failed:', e)
+      }
+
+      // Keep tickets.qr_token / qr_url populated with seat 1 for backward compat.
       await patchTicket(id, {
         status: 'approved',
-        qr_token: token,
-        qr_url: qrUrl,
+        qr_token: seats[0]?.qr_token || null,
+        qr_url:   seats[0]?.qr_url   || null,
         checked_in_count: 0,
       })
 
@@ -79,20 +117,33 @@ export default async function handler(req, res) {
           ? '25-aprel · Toshkent'
           : `${d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long' })} · ${festAddress}`
 
-        const caption =
+        const baseCaption =
           `🎟 <b>Chiptangiz tasdiqlandi!</b>\n\n` +
           `🌿 <b>YASHIL UYIM</b> · Ekologik Festival\n\n` +
           `🎫 Chipta № <b>#${ticket_number}</b>\n` +
           `👤 ${full_name}\n` +
           `📱 ${phone}\n` +
-          `👥 ${ticket_count} kishi\n` +
-          `📅 <b>${dateLabel}</b>\n\n` +
-          `Festival kunida shu QR kodni ko'rsating 👇`
+          `👥 ${seatCount} kishi\n` +
+          `📅 <b>${dateLabel}</b>`
 
-        if (qrUrl) {
-          await sendPhoto(chat_id, qrUrl, caption)
+        if (!seats.length) {
+          await sendMessage(chat_id, baseCaption + `\n\n⚠️ QR kod ilovada mavjud (Profil → Mening chiptalarim)`)
+        } else if (seats.length === 1) {
+          await sendPhoto(chat_id, seats[0].qr_url, baseCaption + `\n\nFestival kunida shu QR kodni ko'rsating 👇`)
         } else {
-          await sendMessage(chat_id, caption + `\n\n⚠️ QR kod ilovada mavjud (Profil → Mening chiptalarim)`)
+          // Send a header explaining N QRs, then each QR with its seat label.
+          await sendMessage(chat_id,
+            baseCaption +
+            `\n\n📥 Sizga ${seatCount} ta QR kod yuborilmoqda — har biri bir kishiga, bir martagina ishlaydi.\n` +
+            `Kim bilan kelyapsiz, har biriga bittadan QR ulashing 👇`
+          )
+          for (const seat of seats) {
+            await sendPhoto(
+              chat_id,
+              seat.qr_url,
+              `🎟 <b>QR ${seat.seat_index}/${seatCount}</b> · #${ticket_number}`
+            )
+          }
         }
       }
     }

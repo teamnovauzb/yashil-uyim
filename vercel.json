@@ -4,6 +4,6 @@
   ],
   "crons": [
     { "path": "/api/cron-cleanup-qrs",       "schedule": "0 3 * * *" },
-    { "path": "/api/cron-broadcast-worker",  "schedule": "* * * * *" }
+    { "path": "/api/cron-broadcast-worker",  "schedule": "0 4 * * *" }
   ]
 }

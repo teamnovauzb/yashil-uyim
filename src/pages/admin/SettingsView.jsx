@@ -78,7 +78,8 @@ export default function SettingsView() {
         await setSetting('ticket_price', price.trim() || '10000')
       }
 
-      // Auto-broadcast new event announcement when the date actually changed
+      // Auto-broadcast new event announcement when the date actually changed.
+      // Broadcast runs as a background job — we just queue it and move on.
       if (isSuper && dateChanged) {
         try {
           const r = await fetch('/api/broadcast', {
@@ -87,8 +88,10 @@ export default function SettingsView() {
             body: JSON.stringify({ tg_id: tgUser?.id, mode: 'event_announcement' }),
           })
           const data = await r.json()
-          if (data.ok) {
-            toast.success(`✅ Saqlandi · ${data.sent}/${data.recipients} foydalanuvchiga e'lon yuborildi`)
+          if (data.ok && data.queued) {
+            toast.success(`✅ Saqlandi · ${data.recipients} foydalanuvchiga e'lon yuborilmoqda…`)
+          } else if (data.ok) {
+            toast.success('Saqlandi (e\'lon: yuboriladigan foydalanuvchi yo\'q)')
           } else {
             toast.success('Saqlandi')
             toast.error('E\'lon yuborilmadi: ' + (data.reason || 'xato'))

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { CalendarDays, MapPin, Save, Sun, Moon, Languages, CreditCard } from 'lucide-react'
 import { getSetting, setSetting } from '../../lib/settings'
@@ -25,8 +25,10 @@ export default function SettingsView() {
   const [showPicker, setShowPicker] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const initialDateIsoRef = useRef(null)
   const { theme, setTheme, lang, setLang } = usePrefs()
-  const isSuper = isSuperAdmin(getTelegramUser()?.id)
+  const tgUser = getTelegramUser()
+  const isSuper = isSuperAdmin(tgUser?.id)
 
   useEffect(() => {
     let cancelled = false
@@ -41,6 +43,7 @@ export default function SettingsView() {
         getSetting('ticket_price', '10000'),
       ])
       if (cancelled) return
+      initialDateIsoRef.current = d
       const dt = new Date(d)
       if (!isNaN(dt)) {
         const pad = (n) => String(n).padStart(2, '0')
@@ -63,6 +66,8 @@ export default function SettingsView() {
     setSaving(true)
     try {
       const iso = `${festivalDate}T${festivalTime}:00`
+      const dateChanged = iso !== initialDateIsoRef.current
+
       await setSetting('festival_date', iso)
       await setSetting('festival_address', address.trim() || 'Toshkent')
       await setSetting('festival_lat', lat.trim())
@@ -72,7 +77,30 @@ export default function SettingsView() {
         await setSetting('payment_card_holder', cardHolder.trim())
         await setSetting('ticket_price', price.trim() || '10000')
       }
-      toast.success('Saqlandi')
+
+      // Auto-broadcast new event announcement when the date actually changed
+      if (isSuper && dateChanged) {
+        try {
+          const r = await fetch('/api/broadcast', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tg_id: tgUser?.id, mode: 'event_announcement' }),
+          })
+          const data = await r.json()
+          if (data.ok) {
+            toast.success(`✅ Saqlandi · ${data.sent}/${data.recipients} foydalanuvchiga e'lon yuborildi`)
+          } else {
+            toast.success('Saqlandi')
+            toast.error('E\'lon yuborilmadi: ' + (data.reason || 'xato'))
+          }
+        } catch {
+          toast.success('Saqlandi')
+          toast.error('E\'lon yuborishda tarmoq xatosi')
+        }
+        initialDateIsoRef.current = iso
+      } else {
+        toast.success('Saqlandi')
+      }
     } catch (err) {
       toast.error(err.message || 'Xato')
     }
@@ -100,6 +128,12 @@ export default function SettingsView() {
             className="w-full bg-gray-800/80 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm outline-none focus:border-green-500" />
         </div>
       </div>
+
+      {isSuper && (
+        <p className="text-[11px] text-gray-500 -mt-2 px-1 leading-relaxed">
+          ℹ️ Sanani o'zgartirib saqlasangiz, barcha foydalanuvchilarga yangi tadbir haqida e'lon avtomatik yuboriladi.
+        </p>
+      )}
 
       {/* Location */}
       <div className="bg-gray-900/80 rounded-2xl border border-gray-800 p-4 space-y-3">

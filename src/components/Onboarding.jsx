@@ -6,21 +6,21 @@ const slides = [
     title: 'Yashil Uyimga xush kelibsiz!',
     desc: 'Ekologiya, barqaror turmush tarzi va yashil texnologiyalar festivali. Har oy Toshkentda.',
     bg: 'from-[#1B4332] via-[#2D6A4F] to-[#40916C]',
-    image: '/intro.png',
+    image: '/intro.jpg',
   },
   {
     emoji: '🌍',
     title: 'Chipta oling — tabiatga yordam',
     desc: 'Har bir chipta — bu festivalni qo\'llab-quvvatlash va tabiatga g\'amxo\'rlik. Joylar cheklangan!',
     bg: 'from-[#2D6A4F] via-[#40916C] to-[#52B788]',
-    image: '/2.png',
+    image: '/2.jpg',
   },
   {
     emoji: '🎤',
     title: 'Ma\'ruzalar & Master-klasslar',
     desc: 'Ekologlar, arxitektorlar va fermerlar bilan jonli suhbatlar, amaliy master-klasslar va musiqa.',
     bg: 'from-[#40916C] via-[#52B788] to-[#74C69D]',
-    image: '/3.png',
+    image: '/3.jpg',
   },
 ]
 
@@ -51,16 +51,26 @@ export default function Onboarding({ onDone }) {
     <div
       className={`fixed inset-0 z-[150] flex flex-col items-center justify-between bg-gradient-to-br ${slide.bg} transition-all duration-500 text-white px-6 pb-12 pt-16 overflow-hidden`}
     >
-      {/* Background image (slide 1) */}
+      {/* Background image (per slide) */}
       {slide.image && (
         <>
           <img
             src={slide.image}
             alt=""
+            fetchpriority="high"
+            decoding="async"
             className="absolute inset-0 w-full h-full object-cover"
           />
           {/* Dark gradient for text legibility: subtle at top, strong at bottom */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/85" />
+          {/* Pre-warm next/previous slide images so transitions are instant */}
+          <div className="hidden">
+            {slides.map((s, i) => (
+              i !== current && s.image ? (
+                <img key={s.image} src={s.image} alt="" loading="eager" />
+              ) : null
+            ))}
+          </div>
         </>
       )}
 

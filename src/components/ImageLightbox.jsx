@@ -7,33 +7,30 @@ export default function ImageLightbox({ src, alt, onClose, mediaType = 'image' }
   const isVideo = mediaType === 'video'
   const mountedAtRef = useRef(Date.now())
 
-  // Ignore the trailing tap that opened us. On mobile, the `click` synthesized
-  // from the gallery tile's touch keeps bubbling after React has already
-  // mounted the lightbox at the same screen coordinates. That click can land
-  // on the full-screen backdrop OR on the X button at the bottom of the
-  // screen (depending on where the original tile was), so we wrap *every*
-  // user-initiated close path through this guard. popstate (system back
-  // button) and Escape (keyboard) bypass the guard since they're explicit
-  // user intent that can't fire as a side effect of the opening tap.
+  // Keep the latest onClose in a ref so we can run the history/listener
+  // effect exactly ONCE per mount. If we put `onClose` in the dep array, every
+  // re-render of the parent (Home re-renders when gallery / venue / countdown
+  // state lands) creates a new onClose reference → effect re-runs → cleanup
+  // fires history.back(), which navigates away from `/` and unmounts the
+  // whole page including the lightbox. That was the "lightbox closes after a
+  // few seconds" bug.
+  const onCloseRef = useRef(onClose)
+  useEffect(() => { onCloseRef.current = onClose }, [onClose])
+
   const guardedClose = () => {
     if (Date.now() - mountedAtRef.current < 500) return
-    onClose()
+    onCloseRef.current?.()
   }
 
   useEffect(() => {
-    // Push a dummy history entry; popstate (back button) closes the lightbox
-    // instead of navigating away from the underlying page.
     history.pushState({ lightbox: true }, '')
     let closedByPop = false
     const onPop = () => {
-      // Same guard as the click paths — a phantom popstate fired right after
-      // pushState (some Telegram WebApp builds do this) would otherwise close
-      // us before the user has even seen the lightbox.
       if (Date.now() - mountedAtRef.current < 500) return
       closedByPop = true
-      onClose()
+      onCloseRef.current?.()
     }
-    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    const onKey = (e) => { if (e.key === 'Escape') onCloseRef.current?.() }
     window.addEventListener('popstate', onPop)
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
@@ -41,10 +38,10 @@ export default function ImageLightbox({ src, alt, onClose, mediaType = 'image' }
       window.removeEventListener('popstate', onPop)
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = ''
-      // Clean up the dummy entry on manual close (X / outside tap)
       if (!closedByPop && history.state?.lightbox) history.back()
     }
-  }, [onClose])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const download = async () => {
     try {

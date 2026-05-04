@@ -206,19 +206,22 @@ export default function GalleryView() {
                     <PlayCircle size={32} className="text-white drop-shadow-lg" />
                   </div>
                 )}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors" />
-                <div className="absolute top-1.5 right-1.5 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-1.5 right-1.5 flex flex-col gap-1.5">
                   <button
+                    type="button"
                     onClick={() => setEditing({ ...it })}
-                    className="w-7 h-7 rounded-lg bg-gray-900/90 hover:bg-gray-800 text-white flex items-center justify-center"
+                    aria-label="Tahrirlash"
+                    className="w-8 h-8 rounded-lg bg-gray-900/85 backdrop-blur-sm border border-white/10 hover:bg-gray-800 text-white flex items-center justify-center shadow-lg"
                   >
-                    <Pencil size={12} />
+                    <Pencil size={13} />
                   </button>
                   <button
+                    type="button"
                     onClick={() => onDelete(it)}
-                    className="w-7 h-7 rounded-lg bg-gray-900/90 hover:bg-rose-500/90 text-white flex items-center justify-center"
+                    aria-label="O'chirish"
+                    className="w-8 h-8 rounded-lg bg-rose-500/85 backdrop-blur-sm border border-white/10 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg"
                   >
-                    <Trash2 size={12} />
+                    <Trash2 size={13} />
                   </button>
                 </div>
                 {it.caption && (

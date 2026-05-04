@@ -7,11 +7,16 @@ export default function ImageLightbox({ src, alt, onClose, mediaType = 'image' }
   const isVideo = mediaType === 'video'
   const mountedAtRef = useRef(Date.now())
 
-  // Ignore taps that arrive just after we mount — a tile click on mobile fires
-  // a trailing `click` event that bubbles to the freshly-rendered backdrop and
-  // would otherwise close the lightbox the instant it opens.
-  const handleBackdropClick = () => {
-    if (Date.now() - mountedAtRef.current < 350) return
+  // Ignore the trailing tap that opened us. On mobile, the `click` synthesized
+  // from the gallery tile's touch keeps bubbling after React has already
+  // mounted the lightbox at the same screen coordinates. That click can land
+  // on the full-screen backdrop OR on the X button at the bottom of the
+  // screen (depending on where the original tile was), so we wrap *every*
+  // user-initiated close path through this guard. popstate (system back
+  // button) and Escape (keyboard) bypass the guard since they're explicit
+  // user intent that can't fire as a side effect of the opening tap.
+  const guardedClose = () => {
+    if (Date.now() - mountedAtRef.current < 500) return
     onClose()
   }
 
@@ -20,7 +25,14 @@ export default function ImageLightbox({ src, alt, onClose, mediaType = 'image' }
     // instead of navigating away from the underlying page.
     history.pushState({ lightbox: true }, '')
     let closedByPop = false
-    const onPop = () => { closedByPop = true; onClose() }
+    const onPop = () => {
+      // Same guard as the click paths — a phantom popstate fired right after
+      // pushState (some Telegram WebApp builds do this) would otherwise close
+      // us before the user has even seen the lightbox.
+      if (Date.now() - mountedAtRef.current < 500) return
+      closedByPop = true
+      onClose()
+    }
     const onKey = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('popstate', onPop)
     document.addEventListener('keydown', onKey)
@@ -55,7 +67,7 @@ export default function ImageLightbox({ src, alt, onClose, mediaType = 'image' }
   return (
     <div
       className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
-      onClick={handleBackdropClick}
+      onClick={guardedClose}
       style={{
         paddingTop:    'max(env(safe-area-inset-top), 5rem)',
         paddingBottom: 'calc(max(env(safe-area-inset-bottom), 0px) + 6rem)',
@@ -96,7 +108,7 @@ export default function ImageLightbox({ src, alt, onClose, mediaType = 'image' }
           </button>
         )}
         <button
-          onClick={onClose}
+          onClick={guardedClose}
           className="w-12 h-12 rounded-full bg-white/15 backdrop-blur text-white flex items-center justify-center shadow-2xl active:scale-95 transition-transform"
           aria-label="Close"
         >

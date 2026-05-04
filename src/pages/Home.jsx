@@ -43,6 +43,23 @@ const featureDefs = [
   { Icon: Lightbulb,  titleKey: 'featSuggestion', descKey: 'featSuggestionDesc', to: '/taklif',      btnKey: 'sendSuggestion' },
 ]
 
+// Convert a Yandex Maps share URL into an iframe-compatible widget URL.
+// Returns null when the URL doesn't look like a known embeddable shape so the
+// caller can fall back to the OSM iframe instead of showing a broken frame.
+function toYandexEmbedUrl(raw) {
+  if (!raw || typeof raw !== 'string') return null
+  const url = raw.trim()
+  if (!url) return null
+  // Already a widget URL — use as-is.
+  if (url.includes('/map-widget/v1/')) return url
+  // Org page → widget. Works for URLs like
+  //   https://yandex.ru/maps/org/<id>?si=...
+  //   https://yandex.com/maps/org/<id>
+  const m = url.match(/yandex\.[a-z.]+\/maps\/(org\/\d+)/i)
+  if (m) return `https://yandex.com/map-widget/v1/${m[1]}`
+  return null
+}
+
 function useCountdownTo(targetDate) {
   const [timeLeft, setTimeLeft] = useState({})
 
@@ -67,7 +84,7 @@ function useCountdownTo(targetDate) {
 
 export default function Home() {
   const [showPopup, setShowPopup] = useState(false)
-  const [venue, setVenue] = useState({ address: '', lat: '', lng: '' })
+  const [venue, setVenue] = useState({ address: '', lat: '', lng: '', yandexUrl: '' })
   const [festivalDate, setFestivalDate] = useState('2026-04-25T09:00:00')
   const [galleryItems, setGalleryItems] = useState(null) // null = loading, [] = empty
   const [lightbox, setLightbox] = useState(null)
@@ -82,8 +99,9 @@ export default function Home() {
       getSetting('festival_lat', ''),
       getSetting('festival_lng', ''),
       getSetting('festival_date', '2026-04-25T09:00:00'),
-    ]).then(([address, lat, lng, date]) => {
-      setVenue({ address, lat, lng })
+      getSetting('festival_yandex_url', ''),
+    ]).then(([address, lat, lng, date, yandexUrl]) => {
+      setVenue({ address, lat, lng, yandexUrl })
       if (date) setFestivalDate(date)
     })
   }, [])
@@ -358,18 +376,36 @@ export default function Home() {
               <p className="text-[#40916C] text-sm">{venue.address}</p>
             </div>
 
-            {venue.lat && venue.lng && (
-              <div className="rounded-2xl overflow-hidden border border-[#B7E4C7] shadow-sm mb-4">
-                <iframe
-                  title="Festival location"
-                  className="w-full h-64"
-                  loading="lazy"
-                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${+venue.lng - 0.01},${+venue.lat - 0.005},${+venue.lng + 0.01},${+venue.lat + 0.005}&layer=mapnik&marker=${venue.lat},${venue.lng}`}
-                />
-              </div>
-            )}
+            {(() => {
+              const yandexEmbed = toYandexEmbedUrl(venue.yandexUrl)
+              if (yandexEmbed) {
+                return (
+                  <div className="rounded-2xl overflow-hidden border border-[#B7E4C7] shadow-sm mb-4">
+                    <iframe
+                      title="Festival location (Yandex)"
+                      className="w-full h-64"
+                      loading="lazy"
+                      src={yandexEmbed}
+                    />
+                  </div>
+                )
+              }
+              if (venue.lat && venue.lng) {
+                return (
+                  <div className="rounded-2xl overflow-hidden border border-[#B7E4C7] shadow-sm mb-4">
+                    <iframe
+                      title="Festival location"
+                      className="w-full h-64"
+                      loading="lazy"
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${+venue.lng - 0.01},${+venue.lat - 0.005},${+venue.lng + 0.01},${+venue.lat + 0.005}&layer=mapnik&marker=${venue.lat},${venue.lng}`}
+                    />
+                  </div>
+                )
+              }
+              return null
+            })()}
 
-            <div className="flex justify-center">
+            <div className="flex flex-wrap justify-center gap-2">
               <button
                 onClick={() => openExternal(
                   venue.lat && venue.lng
@@ -380,6 +416,14 @@ export default function Home() {
               >
                 <ExternalLink size={16} /> {t('openInMaps')}
               </button>
+              {venue.yandexUrl && (
+                <button
+                  onClick={() => openExternal(venue.yandexUrl)}
+                  className="inline-flex items-center gap-2 bg-[#FFCC00] text-[#1B2D1F] px-6 py-3 rounded-full font-medium hover:bg-[#FFD933] transition-colors shadow-sm"
+                >
+                  <ExternalLink size={16} /> Yandex Maps
+                </button>
+              )}
             </div>
           </div>
         </section>

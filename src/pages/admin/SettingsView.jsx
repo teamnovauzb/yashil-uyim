@@ -22,6 +22,7 @@ export default function SettingsView() {
   const [card, setCard] = useState('')
   const [cardHolder, setCardHolder] = useState('')
   const [price, setPrice] = useState('10000')
+  const [yandexUrl, setYandexUrl] = useState('')
   const [showPicker, setShowPicker] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -33,7 +34,7 @@ export default function SettingsView() {
   useEffect(() => {
     let cancelled = false
     async function load() {
-      const [d, addr, la, ln, cardNum, cardName, pr] = await Promise.all([
+      const [d, addr, la, ln, cardNum, cardName, pr, yMap] = await Promise.all([
         getSetting('festival_date', '2026-04-25T09:00:00'),
         getSetting('festival_address', 'Toshkent'),
         getSetting('festival_lat', ''),
@@ -41,6 +42,7 @@ export default function SettingsView() {
         getSetting('payment_card', '9999 9999 9999 9999'),
         getSetting('payment_card_holder', ''),
         getSetting('ticket_price', '10000'),
+        getSetting('festival_yandex_url', ''),
       ])
       if (cancelled) return
       initialDateIsoRef.current = d
@@ -53,6 +55,7 @@ export default function SettingsView() {
       setAddress(addr)
       setLat(la); setLng(ln)
       setCard(cardNum); setCardHolder(cardName); setPrice(pr)
+      setYandexUrl(yMap)
       setLoading(false)
     }
     load()
@@ -72,6 +75,7 @@ export default function SettingsView() {
       await setSetting('festival_address', address.trim() || 'Toshkent')
       await setSetting('festival_lat', lat.trim())
       await setSetting('festival_lng', lng.trim())
+      await setSetting('festival_yandex_url', yandexUrl.trim())
       if (isSuper) {
         await setSetting('payment_card', card.trim() || '9999 9999 9999 9999')
         await setSetting('payment_card_holder', cardHolder.trim())
@@ -180,6 +184,22 @@ export default function SettingsView() {
             />
           </div>
         )}
+
+        <div>
+          <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">
+            Yandex Maps URL (ixtiyoriy)
+          </label>
+          <input
+            value={yandexUrl}
+            onChange={e => setYandexUrl(e.target.value)}
+            placeholder="https://yandex.ru/maps/org/157514628684?si=..."
+            className="w-full bg-gray-800/80 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm outline-none focus:border-green-500"
+          />
+          <p className="text-[10px] text-gray-500 mt-1.5 leading-relaxed">
+            Tashkilot sahifasi havolasini joylashtiring (yandex.ru/maps/org/...). Berilsa, asosiy
+            sahifada xarita Yandex'dan ko'rsatiladi va "Yandex Maps" tugmasi paydo bo'ladi.
+          </p>
+        </div>
       </div>
 
       {/* Payment (super admin only) */}

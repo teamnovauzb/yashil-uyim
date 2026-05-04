@@ -1,10 +1,20 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { X, Download } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { openExternal } from '../lib/telegram'
 
 export default function ImageLightbox({ src, alt, onClose, mediaType = 'image' }) {
   const isVideo = mediaType === 'video'
+  const mountedAtRef = useRef(Date.now())
+
+  // Ignore taps that arrive just after we mount — a tile click on mobile fires
+  // a trailing `click` event that bubbles to the freshly-rendered backdrop and
+  // would otherwise close the lightbox the instant it opens.
+  const handleBackdropClick = () => {
+    if (Date.now() - mountedAtRef.current < 350) return
+    onClose()
+  }
+
   useEffect(() => {
     // Push a dummy history entry; popstate (back button) closes the lightbox
     // instead of navigating away from the underlying page.
@@ -45,7 +55,7 @@ export default function ImageLightbox({ src, alt, onClose, mediaType = 'image' }
   return (
     <div
       className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
-      onClick={onClose}
+      onClick={handleBackdropClick}
       style={{
         paddingTop:    'max(env(safe-area-inset-top), 5rem)',
         paddingBottom: 'calc(max(env(safe-area-inset-bottom), 0px) + 6rem)',

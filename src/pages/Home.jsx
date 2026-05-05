@@ -203,42 +203,41 @@ export default function Home() {
       )}
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#1B4332] via-[#2D6A4F] to-[#40916C] text-white py-20 px-4">
-        {/* Eco-tree backdrop */}
-        <div
+      <section className="relative overflow-hidden text-white py-20 px-4">
+        {/* Festival poster backdrop */}
+        <img
+          src="/main.jpg"
+          alt=""
           aria-hidden
-          className="absolute inset-0 pointer-events-none bg-no-repeat bg-center bg-contain opacity-25"
-          style={{
-            backgroundImage: 'url(/landing.png)',
-            mixBlendMode: 'screen',
-          }}
+          fetchpriority="high"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover"
         />
-        {/* Soft vignette so text reads cleanly over the tree */}
+        {/* Dim overlay so the chip + countdown + CTAs read cleanly over the art */}
         <div
           aria-hidden
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(ellipse at center, transparent 30%, rgba(27, 67, 50, 0.55) 75%)',
-          }}
+          className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/30 via-black/40 to-black/70"
         />
         <div className="relative max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-4 py-1.5 text-sm font-medium mb-6 text-green-200">
+          <div
+            className="inline-flex items-center gap-2 bg-white/15 backdrop-blur rounded-full px-4 py-1.5 text-sm font-medium mb-6 text-white"
+            style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}
+          >
             <Leaf size={14} /> {t('monthlyTashkent')}
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight">
-            {t('appName')}
-          </h1>
-          <p className="text-xl md:text-2xl text-green-200 mb-2 font-light">
-            {t('tagline')}
-          </p>
-          <p className="text-green-300 mb-10 max-w-xl mx-auto leading-relaxed">
+          <p
+            className="text-white/95 mb-10 max-w-xl mx-auto leading-relaxed"
+            style={{ textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}
+          >
             Tabiat bilan uyg'unlikda yashaymiz. Ekologiya, barqaror turmush tarzi
             va yashil texnologiyalar festivali.
           </p>
 
           <div className="mb-10">
-            <p className="text-green-300 text-sm mb-4 uppercase tracking-widest font-medium">
+            <p
+              className="text-white/90 text-sm mb-4 uppercase tracking-widest font-medium"
+              style={{ textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}
+            >
               {t('festivalIn')}
             </p>
             <CountdownTimer />

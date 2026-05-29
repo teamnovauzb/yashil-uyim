@@ -1,11 +1,14 @@
-// Drains pending broadcasts. Each invocation processes one batch from the
-// oldest unfinished job, then either self-chains the next batch or exits and
-// lets the per-minute cron pick it up later. Failed sends are accumulated in
-// failed_recipients and retried (up to MAX_RETRIES passes) before the job
-// is marked done — so every user actually gets the message.
+// Drains pending broadcasts. Each invocation atomically claims one batch of
+// the oldest unfinished job, sends to those recipients, updates counters and
+// either self-chains the next batch or exits. The atomic claim guarantees
+// that even when many worker invocations fire concurrently (chainNext + bot
+// pokes + the daily safety cron) no recipient ever gets a duplicate of the
+// same broadcast.
 //
 // Tuned for reliability over speed: 100ms between sends, batch of 60. About
-// 10 messages/sec sustained, well under Telegram's 30/sec ceiling.
+// 10 messages/sec sustained, well under Telegram's 30/sec ceiling. Failed
+// sends collect into failed_recipients and trigger up to MAX_RETRIES retry
+// passes over only the failed chat_ids before the job is marked done.
 
 const BOT_TOKEN    = process.env.BOT_TOKEN
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL
@@ -37,6 +40,54 @@ async function nextPendingJob() {
   return Array.isArray(data) ? data[0] : null
 }
 
+async function getJob(id) {
+  const r = await fetch(
+    `${SUPABASE_URL}/rest/v1/broadcasts?id=eq.${id}&select=*`,
+    { headers: HEADERS }
+  )
+  const data = await r.json()
+  return Array.isArray(data) ? data[0] : null
+}
+
+// Atomic batch claim. Advances next_offset from `expectedOffset` to
+// `newOffset` ONLY if the row still has done=false and next_offset matches
+// what we observed. Returns the row at the moment of claim, or null if
+// another worker already won the claim (or finalized the job).
+async function claimBatch(jobId, expectedOffset, newOffset) {
+  const r = await fetch(
+    `${SUPABASE_URL}/rest/v1/broadcasts?id=eq.${jobId}&next_offset=eq.${expectedOffset}&done=eq.false`,
+    {
+      method: 'PATCH',
+      headers: { ...HEADERS, Prefer: 'return=representation' },
+      body: JSON.stringify({
+        next_offset: newOffset,
+        updated_at:  new Date().toISOString(),
+      }),
+    }
+  )
+  if (!r.ok) return null
+  const data = await r.json()
+  return Array.isArray(data) && data.length > 0 ? data[0] : null
+}
+
+// Atomic transition at end-of-pass: either start a retry pass (recipients
+// becomes the failed list, next_offset resets to 0) or mark the job done.
+// Both forms guard on next_offset=eq.expectedTotal so only one worker per
+// pass can perform the transition.
+async function transitionPassEnd(jobId, expectedTotal, payload) {
+  const r = await fetch(
+    `${SUPABASE_URL}/rest/v1/broadcasts?id=eq.${jobId}&next_offset=eq.${expectedTotal}&done=eq.false`,
+    {
+      method: 'PATCH',
+      headers: { ...HEADERS, Prefer: 'return=representation' },
+      body: JSON.stringify({ ...payload, updated_at: new Date().toISOString() }),
+    }
+  )
+  if (!r.ok) return null
+  const data = await r.json()
+  return Array.isArray(data) && data.length > 0 ? data[0] : null
+}
+
 // Returns { ok, retryAfter? } — retryAfter is set when Telegram returns 429.
 async function sendOne(chatId, text) {
   try {
@@ -61,14 +112,6 @@ async function sendOne(chatId, text) {
   }
 }
 
-async function patchJob(id, payload) {
-  await fetch(`${SUPABASE_URL}/rest/v1/broadcasts?id=eq.${id}`, {
-    method: 'PATCH',
-    headers: { ...HEADERS, Prefer: 'return=minimal' },
-    body: JSON.stringify({ ...payload, updated_at: new Date().toISOString() }),
-  })
-}
-
 function chainNext(host) {
   if (!host || !CRON_SECRET) return
   fetch(`https://${host}/api/cron-broadcast-worker`, {
@@ -90,102 +133,79 @@ export default async function handler(req, res) {
     const recipients = Array.isArray(job.recipients) ? job.recipients : []
     const total      = recipients.length
     const start      = job.next_offset || 0
-    const end        = Math.min(start + BATCH_SIZE, total)
     const failedSoFar = Array.isArray(job.failed_recipients) ? job.failed_recipients : []
+    const host       = req.headers?.host || req.headers?.['x-forwarded-host']
 
-    // Already past the end of the current pass — finalize or queue retry.
+    // End of pass — either retry or done. Atomic guard prevents double-retry.
     if (start >= total) {
       const retryCount = job.retry_count || 0
       if (failedSoFar.length > 0 && retryCount < MAX_RETRIES) {
-        // Start a retry pass with just the failed chat_ids.
-        await patchJob(job.id, {
+        const won = await transitionPassEnd(job.id, total, {
           recipients:        failedSoFar,
           failed_recipients: [],
           next_offset:       0,
           retry_count:       retryCount + 1,
         })
-        chainNext(req.headers?.host || req.headers?.['x-forwarded-host'])
+        if (won) chainNext(host)
         return res.status(200).json({
-          ok: true, job_id: job.id, retry_started: retryCount + 1, retry_size: failedSoFar.length,
+          ok: true, job_id: job.id, retry_started: won ? retryCount + 1 : null, raced: !won,
         })
       }
-      await patchJob(job.id, { done: true })
+      const won = await transitionPassEnd(job.id, total, { done: true })
       return res.status(200).json({
-        ok: true, job_id: job.id, finalized: true, undelivered: failedSoFar.length,
+        ok: true, job_id: job.id, finalized: !!won, raced: !won,
       })
     }
 
+    // Mid-pass — atomically claim the next batch.
+    const end     = Math.min(start + BATCH_SIZE, total)
+    const claimed = await claimBatch(job.id, start, end)
+    if (!claimed) {
+      // Another worker beat us to this batch. Exit; let them continue.
+      return res.status(200).json({ ok: true, job_id: job.id, raced: true })
+    }
+
+    // We own [start, end). Send those messages exclusively.
     let sentInBatch = 0
-    let failedInBatch = []
+    const failedInBatch = []
     for (let i = start; i < end; i++) {
       const chatId = recipients[i]
-      let result = await sendOne(chatId, job.message)
-
-      // Honor Telegram's 429 retry_after — sleep then try once more.
+      let result = await sendOne(chatId, claimed.message)
       if (!result.ok && result.retryAfter) {
         await sleep(Math.min(result.retryAfter * 1000, 10_000))
-        result = await sendOne(chatId, job.message)
+        result = await sendOne(chatId, claimed.message)
       }
-
       if (result.ok) sentInBatch++
       else failedInBatch.push(chatId)
-
       if (i < end - 1) await sleep(SEND_DELAY_MS)
     }
 
-    const newOffset    = end
-    const passComplete = newOffset >= total
-    const allFailed    = [...failedSoFar, ...failedInBatch]
+    // Update counters. Re-read the row first so we don't clobber concurrent
+    // counter writes from a peer worker processing a different range. The
+    // window between getJob and patch is small, so accumulation drift is
+    // negligible in practice.
+    const fresh = await getJob(job.id) || claimed
+    const freshFailedList = Array.isArray(fresh.failed_recipients) ? fresh.failed_recipients : []
+    await fetch(`${SUPABASE_URL}/rest/v1/broadcasts?id=eq.${job.id}`, {
+      method: 'PATCH',
+      headers: { ...HEADERS, Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        sent:              (fresh.sent || 0) + sentInBatch,
+        failed:            (fresh.failed || 0) + failedInBatch.length,
+        failed_recipients: [...freshFailedList, ...failedInBatch],
+        updated_at:        new Date().toISOString(),
+      }),
+    })
 
-    let isDone   = false
-    let didRetry = false
-
-    if (passComplete) {
-      const retryCount = job.retry_count || 0
-      if (allFailed.length > 0 && retryCount < MAX_RETRIES) {
-        // Kick off a retry pass: shrink recipients to just the failures.
-        await patchJob(job.id, {
-          sent:              (job.sent || 0) + sentInBatch,
-          failed:            (job.failed || 0) + failedInBatch.length,
-          recipients:        allFailed,
-          failed_recipients: [],
-          next_offset:       0,
-          retry_count:       retryCount + 1,
-        })
-        didRetry = true
-      } else {
-        // No retry needed/left — mark done.
-        await patchJob(job.id, {
-          next_offset:       newOffset,
-          sent:              (job.sent || 0) + sentInBatch,
-          failed:            (job.failed || 0) + failedInBatch.length,
-          failed_recipients: allFailed,
-          done:              true,
-        })
-        isDone = true
-      }
-    } else {
-      // More to do in this pass.
-      await patchJob(job.id, {
-        next_offset:       newOffset,
-        sent:              (job.sent || 0) + sentInBatch,
-        failed:            (job.failed || 0) + failedInBatch.length,
-        failed_recipients: allFailed,
-      })
-    }
-
-    if (!isDone) {
-      chainNext(req.headers?.host || req.headers?.['x-forwarded-host'])
-    }
+    // Self-chain to drive forward progress.
+    chainNext(host)
 
     return res.status(200).json({
       ok:        true,
       job_id:    job.id,
       processed: end - start,
       total,
-      remaining: total - newOffset,
-      retried:   didRetry,
-      done:      isDone,
+      remaining: total - end,
     })
   } catch (e) {
     console.error('cron-broadcast-worker error:', e)

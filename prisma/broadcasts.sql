@@ -22,6 +22,7 @@ alter table public.broadcasts add column if not exists failed_recipients text[] 
 alter table public.broadcasts add column if not exists retry_count       int         not null default 0;
 alter table public.broadcasts add column if not exists fire_at           timestamptz;
 alter table public.broadcasts add column if not exists program_id        bigint;
+alter table public.broadcasts add column if not exists audience          text   not null default 'all';
 
 create index if not exists broadcasts_fire_at_idx
   on public.broadcasts (fire_at)

@@ -9,20 +9,6 @@ import { EditDrawer, Labeled } from './NewsView'
 const CATEGORIES = ['suhbat', 'master-klass', 'konsert', "ko'rgazma", 'boshqa']
 const REMINDER_LEAD_MINUTES = 5
 
-// Build the recipient chat_id list for the pre-event reminder broadcast —
-// union of registered users and ticket buyers, deduped.
-async function listRecipients() {
-  const ids = new Set()
-  const { data: users } = await supabase.from('users').select('telegram_id')
-  if (Array.isArray(users)) users.forEach(u => u?.telegram_id && ids.add(String(u.telegram_id)))
-  const { data: tickets } = await supabase
-    .from('tickets')
-    .select('chat_id')
-    .not('chat_id', 'is', null)
-  if (Array.isArray(tickets)) tickets.forEach(t => t?.chat_id && ids.add(String(t.chat_id)))
-  return Array.from(ids)
-}
-
 // festivalDateIso looks like "2026-05-15T09:00:00" (local, no tz suffix).
 // startTime looks like "10:00". Returns a Date or null when unschedulable.
 function computeReminderFireAt(festivalDateIso, startTime) {
@@ -56,14 +42,17 @@ async function upsertReminder(program, festivalDateIso) {
     .eq('done', false)
 
   if (!fireAt || fireAt.getTime() <= Date.now()) return null
-  const recipients = await listRecipients()
-  if (recipients.length === 0) return null
 
+  // recipients = [] + audience='checked_in' tells the worker to resolve the
+  // recipient list at fire time from ticket_seats — only users whose QR has
+  // actually been scanned at the venue receive the reminder. At save time
+  // (often hours before the festival) the list would be empty anyway.
   const { error } = await supabase.from('broadcasts').insert({
     message:    buildReminderMessage(program, program.start_time),
-    recipients,
+    recipients: [],
     fire_at:    fireAt.toISOString(),
     program_id: program.id,
+    audience:   'checked_in',
   })
   if (error) throw error
   return fireAt

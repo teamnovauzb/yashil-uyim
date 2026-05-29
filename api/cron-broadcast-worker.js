@@ -40,6 +40,46 @@ async function nextPendingJob() {
   return Array.isArray(data) ? data[0] : null
 }
 
+// Distinct chat_ids whose ticket has at least one checked-in seat.
+async function listCheckedInChatIds() {
+  const seatsRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/ticket_seats?checked_in_at=not.is.null&select=ticket_id`,
+    { headers: HEADERS }
+  )
+  const seats = await seatsRes.json().catch(() => [])
+  if (!Array.isArray(seats) || seats.length === 0) return []
+  const ticketIds = [...new Set(seats.map(s => s.ticket_id))]
+  if (ticketIds.length === 0) return []
+  const tixRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/tickets?id=in.(${ticketIds.join(',')})&chat_id=not.is.null&select=chat_id`,
+    { headers: HEADERS }
+  )
+  const tix = await tixRes.json().catch(() => [])
+  if (!Array.isArray(tix)) return []
+  return [...new Set(tix.map(t => String(t.chat_id)))]
+}
+
+// For a deferred-audience job, populate the recipients column atomically.
+// Returns the populated row (or null if another worker beat us to it). We
+// guard on next_offset=eq.0 AND recipients=eq.{} so we never overwrite an
+// in-progress run.
+async function populateRecipients(jobId, chatIds) {
+  const r = await fetch(
+    `${SUPABASE_URL}/rest/v1/broadcasts?id=eq.${jobId}&next_offset=eq.0&recipients=eq.%7B%7D&done=eq.false`,
+    {
+      method: 'PATCH',
+      headers: { ...HEADERS, Prefer: 'return=representation' },
+      body: JSON.stringify({
+        recipients: chatIds,
+        updated_at: new Date().toISOString(),
+      }),
+    }
+  )
+  if (!r.ok) return null
+  const data = await r.json()
+  return Array.isArray(data) && data.length > 0 ? data[0] : null
+}
+
 async function getJob(id) {
   const r = await fetch(
     `${SUPABASE_URL}/rest/v1/broadcasts?id=eq.${id}&select=*`,
@@ -127,8 +167,36 @@ export default async function handler(req, res) {
   }
 
   try {
-    const job = await nextPendingJob()
+    let job = await nextPendingJob()
     if (!job) return res.status(200).json({ ok: true, idle: true })
+
+    // Deferred audience: resolve recipients now (at fire time) instead of at
+    // creation. Used by the pre-event program reminders so we only ping
+    // people who are actually at the venue (their QR has been scanned).
+    if (
+      (job.audience === 'checked_in') &&
+      (job.next_offset || 0) === 0 &&
+      Array.isArray(job.recipients) && job.recipients.length === 0
+    ) {
+      const chatIds = await listCheckedInChatIds()
+      if (chatIds.length === 0) {
+        // No-one is at the venue → finalize without sending.
+        await fetch(`${SUPABASE_URL}/rest/v1/broadcasts?id=eq.${job.id}&next_offset=eq.0&done=eq.false`, {
+          method: 'PATCH',
+          headers: { ...HEADERS, Prefer: 'return=minimal' },
+          body: JSON.stringify({ done: true, updated_at: new Date().toISOString() }),
+        })
+        return res.status(200).json({ ok: true, job_id: job.id, finalized: true, no_recipients: true })
+      }
+      const populated = await populateRecipients(job.id, chatIds)
+      if (populated) {
+        job = populated
+      } else {
+        // A peer beat us to populating — re-read the latest state.
+        const fresh = await getJob(job.id)
+        if (fresh) job = fresh
+      }
+    }
 
     const recipients = Array.isArray(job.recipients) ? job.recipients : []
     const total      = recipients.length

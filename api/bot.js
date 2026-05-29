@@ -1,24 +1,11 @@
 import { generateSeats } from './_qr.js'
+import { isSuperAdmin } from './_admins.js'
 
 const BOT_TOKEN = process.env.BOT_TOKEN
 const APP_URL = 'https://yashiluyim.vercel.app'
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY
 const CRON_SECRET  = process.env.CRON_SECRET
-
-async function isSuperAdmin(telegramId) {
-  if (!telegramId) return false
-  try {
-    const r = await fetch(
-      `${SUPABASE_URL}/rest/v1/admins?telegram_id=eq.${telegramId}&select=is_super`,
-      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-    )
-    const data = await r.json()
-    return Array.isArray(data) && data[0]?.is_super === true
-  } catch {
-    return false
-  }
-}
 
 // Fire-and-forget — pokes the broadcast worker so any due scheduled
 // broadcasts (program reminders) get dispatched promptly without waiting

@@ -2,6 +2,8 @@
 // The /api/cron-broadcast-worker endpoint drains the job in batches (cron
 // runs every minute), so this scales past Vercel's 10-second timeout.
 
+import { isSuperAdmin } from './_admins.js'
+
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY
 const CRON_SECRET  = process.env.CRON_SECRET
@@ -10,16 +12,6 @@ const HEADERS = {
   'Content-Type':  'application/json',
   'apikey':        SUPABASE_KEY,
   'Authorization': `Bearer ${SUPABASE_KEY}`,
-}
-
-async function isSuperAdmin(telegramId) {
-  if (!telegramId) return false
-  const r = await fetch(
-    `${SUPABASE_URL}/rest/v1/admins?telegram_id=eq.${telegramId}&select=is_super`,
-    { headers: HEADERS }
-  )
-  const data = await r.json()
-  return Array.isArray(data) && data[0]?.is_super === true
 }
 
 async function listUserChatIds() {

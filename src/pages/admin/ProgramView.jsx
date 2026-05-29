@@ -3,9 +3,79 @@ import toast from 'react-hot-toast'
 import { Plus, Pencil, Trash2, CalendarDays, Upload, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { uploadImage } from '../../lib/upload'
+import { getSetting } from '../../lib/settings'
 import { EditDrawer, Labeled } from './NewsView'
 
 const CATEGORIES = ['suhbat', 'master-klass', 'konsert', "ko'rgazma", 'boshqa']
+const REMINDER_LEAD_MINUTES = 5
+
+// Build the recipient chat_id list for the pre-event reminder broadcast —
+// union of registered users and ticket buyers, deduped.
+async function listRecipients() {
+  const ids = new Set()
+  const { data: users } = await supabase.from('users').select('telegram_id')
+  if (Array.isArray(users)) users.forEach(u => u?.telegram_id && ids.add(String(u.telegram_id)))
+  const { data: tickets } = await supabase
+    .from('tickets')
+    .select('chat_id')
+    .not('chat_id', 'is', null)
+  if (Array.isArray(tickets)) tickets.forEach(t => t?.chat_id && ids.add(String(t.chat_id)))
+  return Array.from(ids)
+}
+
+// festivalDateIso looks like "2026-05-15T09:00:00" (local, no tz suffix).
+// startTime looks like "10:00". Returns a Date or null when unschedulable.
+function computeReminderFireAt(festivalDateIso, startTime) {
+  if (!festivalDateIso || !startTime) return null
+  const datePart = festivalDateIso.split('T')[0]
+  if (!datePart) return null
+  const m = /^(\d{1,2}):(\d{2})/.exec(startTime)
+  if (!m) return null
+  const combined = new Date(`${datePart}T${String(m[1]).padStart(2, '0')}:${m[2]}:00`)
+  if (isNaN(combined)) return null
+  return new Date(combined.getTime() - REMINDER_LEAD_MINUTES * 60 * 1000)
+}
+
+function buildReminderMessage(program, startTime) {
+  return (
+    `🔔 <b>Tadbir ${REMINDER_LEAD_MINUTES} daqiqada boshlanadi!</b>\n\n` +
+    `📋 <b>${program.title}</b>\n` +
+    (program.speaker ? `👤 ${program.speaker}\n` : '') +
+    (startTime ? `🕐 ${startTime.slice(0, 5)}` : '')
+  )
+}
+
+async function upsertReminder(program, festivalDateIso) {
+  const fireAt = computeReminderFireAt(festivalDateIso, program.start_time)
+  // Always clean up any prior scheduled (still-pending) reminder for this
+  // program so a re-save uses the new fire_at / message.
+  await supabase
+    .from('broadcasts')
+    .delete()
+    .eq('program_id', program.id)
+    .eq('done', false)
+
+  if (!fireAt || fireAt.getTime() <= Date.now()) return null
+  const recipients = await listRecipients()
+  if (recipients.length === 0) return null
+
+  const { error } = await supabase.from('broadcasts').insert({
+    message:    buildReminderMessage(program, program.start_time),
+    recipients,
+    fire_at:    fireAt.toISOString(),
+    program_id: program.id,
+  })
+  if (error) throw error
+  return fireAt
+}
+
+async function cancelReminder(programId) {
+  await supabase
+    .from('broadcasts')
+    .delete()
+    .eq('program_id', programId)
+    .eq('done', false)
+}
 
 const empty = {
   id: null, title: '', description: '', speaker: '',
@@ -57,12 +127,31 @@ export default function ProgramView() {
     }
     if (!payload.title) return toast.error('Nomi majburiy')
 
-    const action = editing.id
-      ? supabase.from('programs').update(payload).eq('id', editing.id)
-      : supabase.from('programs').insert(payload)
-    const { error } = await action
-    if (error) return toast.error(error.message)
-    toast.success('Saqlandi')
+    let savedRow
+    if (editing.id) {
+      const { data, error } = await supabase.from('programs').update(payload).eq('id', editing.id).select().single()
+      if (error) return toast.error(error.message)
+      savedRow = data
+    } else {
+      const { data, error } = await supabase.from('programs').insert(payload).select().single()
+      if (error) return toast.error(error.message)
+      savedRow = data
+    }
+
+    // Schedule the 5-minute pre-event reminder (best-effort, doesn't block save).
+    try {
+      const festivalDate = await getSetting('festival_date', '')
+      const fireAt = await upsertReminder(savedRow, festivalDate)
+      if (fireAt) {
+        toast.success(`Saqlandi · Eslatma ${fireAt.toLocaleString('uz-UZ', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })} ga rejalashtirildi`)
+      } else {
+        toast.success('Saqlandi')
+      }
+    } catch (err) {
+      console.error('Reminder scheduling failed:', err)
+      toast.success('Saqlandi (eslatma rejalashtirilmadi)')
+    }
+
     setEditing(null)
     load()
   }
@@ -71,6 +160,7 @@ export default function ProgramView() {
     if (!confirm("O'chirishni tasdiqlaysizmi?")) return
     const { error } = await supabase.from('programs').delete().eq('id', id)
     if (error) return toast.error(error.message)
+    await cancelReminder(id).catch(() => {})
     toast.success("O'chirildi")
     load()
   }

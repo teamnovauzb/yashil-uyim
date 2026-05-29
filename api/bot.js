@@ -4,6 +4,32 @@ const BOT_TOKEN = process.env.BOT_TOKEN
 const APP_URL = 'https://yashiluyim.vercel.app'
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY
+const CRON_SECRET  = process.env.CRON_SECRET
+
+async function isSuperAdmin(telegramId) {
+  if (!telegramId) return false
+  try {
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/admins?telegram_id=eq.${telegramId}&select=is_super`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    )
+    const data = await r.json()
+    return Array.isArray(data) && data[0]?.is_super === true
+  } catch {
+    return false
+  }
+}
+
+// Fire-and-forget — pokes the broadcast worker so any due scheduled
+// broadcasts (program reminders) get dispatched promptly without waiting
+// for the daily cron.
+function pokeWorker(host) {
+  if (!host || !CRON_SECRET) return
+  fetch(`https://${host}/api/cron-broadcast-worker`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${CRON_SECRET}` },
+  }).catch(() => {})
+}
 
 async function getSetting(key, fallback = '') {
   try {
@@ -116,6 +142,11 @@ export default async function handler(req, res) {
 
   const body = req.body || {}
 
+  // Opportunistic poke: every Telegram update we receive nudges the broadcast
+  // worker so any scheduled program reminders whose fire_at has elapsed are
+  // dispatched without waiting for the daily cron tick.
+  pokeWorker(req.headers?.host || req.headers?.['x-forwarded-host'])
+
   // ── Handle admin button callbacks ──────────────────────────
   if (body.callback_query) {
     const { id, data, message } = body.callback_query
@@ -223,6 +254,39 @@ export default async function handler(req, res) {
   const chatId  = message.chat.id
   const text    = message.text || ''
   const firstName = message.from?.first_name || 'Mehmon'
+
+  // ── /sms <message> — super-admin broadcast ─────────────────
+  if (text.startsWith('/sms ') || text === '/sms') {
+    const fromId = message.from?.id
+    const allowed = await isSuperAdmin(fromId)
+    if (!allowed) {
+      await sendMessage(chatId, '🚫 Bu buyruq faqat super-admin uchun.')
+      return res.status(200).json({ ok: true })
+    }
+    const payload = text.slice(5).trim()
+    if (!payload) {
+      await sendMessage(chatId, "ℹ️ <b>Foydalanish:</b> <code>/sms Sizning xabaringiz</code>\n\nBarcha foydalanuvchilarga yuboriladi.")
+      return res.status(200).json({ ok: true })
+    }
+    try {
+      const host = req.headers?.host || req.headers?.['x-forwarded-host']
+      const r = await fetch(`https://${host}/api/broadcast`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tg_id: fromId, mode: 'custom', message: payload }),
+      })
+      const data = await r.json()
+      if (data.ok && data.queued) {
+        await sendMessage(chatId, `📣 Xabar navbatga qo'shildi: <b>${data.recipients}</b> foydalanuvchiga yuborilmoqda.`)
+      } else {
+        await sendMessage(chatId, `⚠️ Yuborilmadi: ${data.reason || 'xato'}`)
+      }
+    } catch (e) {
+      console.error('/sms error:', e)
+      await sendMessage(chatId, '⚠️ Tarmoq xatosi.')
+    }
+    return res.status(200).json({ ok: true })
+  }
 
   if (text === '/start' || text === '/help') {
     await sendMessage(

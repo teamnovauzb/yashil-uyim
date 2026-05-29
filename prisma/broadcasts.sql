@@ -18,8 +18,18 @@ create table if not exists public.broadcasts (
 );
 
 -- Idempotent additions (safe to re-run after the original table was created)
-alter table public.broadcasts add column if not exists failed_recipients text[] not null default '{}';
-alter table public.broadcasts add column if not exists retry_count       int    not null default 0;
+alter table public.broadcasts add column if not exists failed_recipients text[]      not null default '{}';
+alter table public.broadcasts add column if not exists retry_count       int         not null default 0;
+alter table public.broadcasts add column if not exists fire_at           timestamptz;
+alter table public.broadcasts add column if not exists program_id        bigint;
+
+create index if not exists broadcasts_fire_at_idx
+  on public.broadcasts (fire_at)
+  where done = false and fire_at is not null;
+
+create index if not exists broadcasts_program_id_idx
+  on public.broadcasts (program_id)
+  where program_id is not null;
 
 create index if not exists broadcasts_pending_idx
   on public.broadcasts (created_at)

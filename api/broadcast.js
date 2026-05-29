@@ -69,15 +69,18 @@ async function buildEventAnnouncement() {
   )
 }
 
-async function createJob({ message, recipients, createdBy }) {
+async function createJob({ message, recipients, createdBy, fireAt, programId }) {
+  const row = {
+    message,
+    recipients,
+    created_by: createdBy,
+  }
+  if (fireAt)    row.fire_at    = fireAt
+  if (programId) row.program_id = programId
   const r = await fetch(`${SUPABASE_URL}/rest/v1/broadcasts`, {
     method: 'POST',
     headers: { ...HEADERS, Prefer: 'return=representation' },
-    body: JSON.stringify([{
-      message,
-      recipients,
-      created_by: createdBy,
-    }]),
+    body: JSON.stringify([row]),
   })
   if (!r.ok) {
     const text = await r.text().catch(() => '')
@@ -103,34 +106,53 @@ function kickWorker(host) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false })
 
-  const { tg_id, mode } = req.body || {}
+  const { tg_id, mode, message: customMessage, fire_at, program_id } = req.body || {}
   if (!tg_id) return res.status(401).json({ ok: false, reason: 'missing_tg_id' })
 
   const allowed = await isSuperAdmin(tg_id)
   if (!allowed) return res.status(403).json({ ok: false, reason: 'not_super_admin' })
 
-  if (mode !== 'event_announcement') {
+  if (mode !== 'event_announcement' && mode !== 'custom') {
     return res.status(400).json({ ok: false, reason: 'unknown_mode' })
   }
 
   try {
-    const message    = await buildEventAnnouncement()
-    const recipients = await listUserChatIds()
+    let message
+    if (mode === 'event_announcement') {
+      message = await buildEventAnnouncement()
+    } else {
+      if (!customMessage || typeof customMessage !== 'string' || !customMessage.trim()) {
+        return res.status(400).json({ ok: false, reason: 'empty_message' })
+      }
+      message = customMessage.trim()
+    }
 
+    const recipients = await listUserChatIds()
     if (recipients.length === 0) {
       return res.status(200).json({ ok: true, queued: false, recipients: 0 })
     }
 
-    const job = await createJob({ message, recipients, createdBy: tg_id })
+    const job = await createJob({
+      message,
+      recipients,
+      createdBy: tg_id,
+      fireAt:    fire_at || null,
+      programId: program_id || null,
+    })
 
-    // Trigger first batch immediately. Don't await — return to the admin now.
-    kickWorker(req.headers?.host || req.headers?.['x-forwarded-host'])
+    // Trigger first batch immediately for non-scheduled jobs. Don't await —
+    // return to the admin now. Scheduled jobs will be picked up by the
+    // worker once their fire_at arrives.
+    if (!fire_at) {
+      kickWorker(req.headers?.host || req.headers?.['x-forwarded-host'])
+    }
 
     return res.status(200).json({
       ok:         true,
       queued:     true,
       job_id:     job?.id,
       recipients: recipients.length,
+      fire_at:    fire_at || null,
     })
   } catch (e) {
     console.error('broadcast error:', e)

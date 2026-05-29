@@ -25,8 +25,12 @@ const HEADERS = {
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
 
 async function nextPendingJob() {
+  // Pick the oldest job that is either unscheduled (fire_at NULL) or whose
+  // fire time has arrived. PostgREST `or=(...)` with embedded ISO timestamp.
+  const now = new Date().toISOString()
+  const filter = `done=eq.false&or=(fire_at.is.null,fire_at.lte.${now})`
   const r = await fetch(
-    `${SUPABASE_URL}/rest/v1/broadcasts?done=eq.false&order=created_at.asc&limit=1&select=*`,
+    `${SUPABASE_URL}/rest/v1/broadcasts?${filter}&order=created_at.asc&limit=1&select=*`,
     { headers: HEADERS }
   )
   const data = await r.json()

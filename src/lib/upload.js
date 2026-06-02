@@ -1,5 +1,11 @@
 import { supabase } from './supabase'
 
+// 1 year in seconds. Filenames embed a unique timestamp so a "permanent"
+// browser/CDN cache is safe — overwrites would land at a different path.
+// Lifting this cuts Supabase Storage egress dramatically since repeat views
+// of the same image stop re-downloading every hour (Supabase's default).
+const LONG_CACHE = '31536000, immutable'
+
 // Upload any file (image, video, etc.) to the `media` bucket under the given
 // folder. Returns the public URL.
 export async function uploadFile(file, folder = 'misc') {
@@ -8,7 +14,7 @@ export async function uploadFile(file, folder = 'misc') {
   const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`
   const { error } = await supabase.storage
     .from('media')
-    .upload(path, file, { contentType: file.type, upsert: true })
+    .upload(path, file, { contentType: file.type, upsert: true, cacheControl: LONG_CACHE })
   if (error) throw error
   const { data } = supabase.storage.from('media').getPublicUrl(path)
   return data.publicUrl
@@ -23,7 +29,7 @@ export async function uploadImage(file, folder = 'misc') {
   const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`
   const { error } = await supabase.storage
     .from('media')
-    .upload(path, file, { contentType: file.type, upsert: true })
+    .upload(path, file, { contentType: file.type, upsert: true, cacheControl: LONG_CACHE })
   if (error) throw error
   const { data } = supabase.storage.from('media').getPublicUrl(path)
   return data.publicUrl

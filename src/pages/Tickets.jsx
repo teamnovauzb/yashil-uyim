@@ -2,12 +2,24 @@ import { useState, useRef, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import imageCompression from 'browser-image-compression'
 import { supabase } from '../lib/supabase'
 import { getTelegramUser } from '../lib/telegram'
 import { getCachedPhone } from '../lib/contact'
 import { getSetting } from '../lib/settings'
 import { Paperclip, Image as ImageIcon, Send, ArrowLeft } from 'lucide-react'
 import XButton from '../components/XButton'
+
+// Receipts are user-uploaded screenshots, often multi-MB PNGs from phones.
+// Compressing client-side to ~150–250 KB cuts Supabase Storage egress
+// dramatically since admins reload the receipts grid frequently.
+const RECEIPT_COMPRESSION = {
+  maxSizeMB:        0.4,
+  maxWidthOrHeight: 1280,
+  useWebWorker:     true,
+  initialQuality:   0.8,
+  fileType:         'image/jpeg',
+}
 
 
 export default function Tickets() {
@@ -97,13 +109,28 @@ export default function Tickets() {
         if (dbErr) throw dbErr
       }
 
-      // 2. Upload receipt to Supabase Storage
+      // 2. Compress + upload receipt to Supabase Storage
       let receiptUrl = null
-      const ext = (receipt.name.split('.').pop() || 'jpg').toLowerCase()
-      const filename = `receipt_${ticketNum}_${Date.now()}.${ext}`
+      let toUpload = receipt
+      let uploadType = receipt.type
+      let uploadExt = (receipt.name.split('.').pop() || 'jpg').toLowerCase()
+      if (receipt.type?.startsWith('image/')) {
+        try {
+          toUpload = await imageCompression(receipt, RECEIPT_COMPRESSION)
+          uploadType = 'image/jpeg'
+          uploadExt = 'jpg'
+        } catch (err) {
+          console.error('Receipt compression failed; uploading original:', err)
+        }
+      }
+      const filename = `receipt_${ticketNum}_${Date.now()}.${uploadExt}`
       const { error: storageErr } = await supabase.storage
         .from('receipts')
-        .upload(filename, receipt, { contentType: receipt.type, upsert: true })
+        .upload(filename, toUpload, {
+          contentType: uploadType,
+          upsert:      true,
+          cacheControl: '31536000, immutable',
+        })
       if (storageErr) {
         console.error('Receipt upload failed:', storageErr)
         toast.error('Chek yuklanmadi: ' + storageErr.message)

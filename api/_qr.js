@@ -24,6 +24,7 @@ export async function generateAndStoreQr(token, ticketNumber, suffix = '') {
       'apikey':         SUPABASE_KEY,
       'Authorization':  `Bearer ${SUPABASE_KEY}`,
       'Content-Type':   'image/png',
+      'cache-control':  'max-age=31536000, immutable',
       'x-upsert':       'true',
     },
     body: buffer,

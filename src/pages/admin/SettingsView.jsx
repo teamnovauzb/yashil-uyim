@@ -6,6 +6,7 @@ import MapPicker from '../../components/MapPicker'
 import { usePrefs } from '../../lib/prefs'
 import { isSuperAdmin } from '../../lib/admins'
 import { getTelegramUser } from '../../lib/telegram'
+import { apiFetch } from '../../lib/api'
 
 const LANGS = [
   { code: 'uz', label: "O'zbek"  },
@@ -86,7 +87,7 @@ export default function SettingsView() {
       // Broadcast runs as a background job — we just queue it and move on.
       if (isSuper && dateChanged) {
         try {
-          const r = await fetch('/api/broadcast', {
+          const r = await apiFetch('/api/broadcast', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tg_id: tgUser?.id, mode: 'event_announcement' }),

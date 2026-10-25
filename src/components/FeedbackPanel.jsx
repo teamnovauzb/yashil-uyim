@@ -5,6 +5,8 @@ import { Send, Reply, CheckCircle2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { getTelegramUser } from '../lib/telegram'
 import { getCachedPhone } from '../lib/contact'
+import { usesVps } from '../lib/runtime'
+import { apiFetch } from '../lib/api'
 
 export default function FeedbackPanel() {
   const tgUser = getTelegramUser()
@@ -48,7 +50,7 @@ export default function FeedbackPanel() {
     }
 
     // Notify super admins via bot (best-effort)
-    fetch('/api/suggestion', {
+    if (!usesVps) apiFetch('/api/suggestion', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

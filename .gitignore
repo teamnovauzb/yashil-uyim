@@ -24,3 +24,15 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Isolated VPS/mobile preparation
+.local/
+.worktrees/
+.env.*
+!.env.example
+!**/.env.example
+uploads/
+backups/
+dist-vps/
+android/
+ios/

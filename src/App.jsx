@@ -18,6 +18,7 @@ import Admin from './pages/Admin'
 import { isTelegram, getTelegramUser } from './lib/telegram'
 import { isContacted, markContacted, loadContactFromDb, isTester } from './lib/contact'
 import { isAdmin } from './lib/admins'
+import { isNative, usesVps } from './lib/runtime'
 
 const inTelegram = isTelegram()
 const tgUserAtBoot = getTelegramUser()
@@ -127,10 +128,10 @@ export default function App() {
       />
       {showSplash && <SplashScreen onDone={handleSplashDone} />}
       {showOnboarding && <Onboarding onDone={handleOnboardingDone} />}
-      {!inTelegram && <Navbar />}
-      <main className="flex-1 pb-20 md:pb-0">
+      {!inTelegram && !isNative && <Navbar />}
+      <main className="application-content flex-1 pb-20 md:pb-0">
         <Routes>
-          <Route path="/" element={inTelegram ? <TelegramHome /> : <Home />} />
+          <Route path="/" element={usesVps ? (getTelegramUser()?.is_admin ? <Navigate to="/admin" replace /> : <Home />) : inTelegram ? <TelegramHome /> : <Home />} />
           <Route path="/contact" element={inTelegram ? <ContactShare onDone={() => setShowOnboarding(true)} /> : <Navigate to="/" replace />} />
           <Route path="/chipta" element={<Tickets />} />
           <Route path="/dastur" element={<Program />} />
@@ -140,7 +141,7 @@ export default function App() {
           <Route path="/admin" element={<Admin />} />
         </Routes>
       </main>
-      {!inTelegram && <Footer />}
+      {!inTelegram && !isNative && <Footer />}
       {!isAdminRoute && <BottomNav />}
     </BrowserRouter>
   )

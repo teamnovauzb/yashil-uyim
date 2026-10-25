@@ -1,0 +1,33 @@
+{
+  "name": "yashil-uyim-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/index.js",
+    "worker": "node --env-file-if-exists=.env src/worker.js",
+    "migrate": "node --env-file-if-exists=.env scripts/migrate.js",
+    "migration:export": "node --env-file-if-exists=.env scripts/transfer.js export",
+    "migration:import": "node --env-file-if-exists=.env scripts/transfer.js import",
+    "migration:verify": "node --env-file-if-exists=.env scripts/transfer.js verify",
+    "check": "node scripts/check.js",
+    "test": "node --test --test-concurrency=1 test/*.test.js"
+  },
+  "dependencies": {
+    "@fastify/cookie": "11.1.3",
+    "@fastify/cors": "11.3.1",
+    "@fastify/helmet": "13.2.0",
+    "@fastify/multipart": "10.1.6",
+    "@fastify/rate-limit": "11.2.1",
+    "fastify": "5.12.7",
+    "pg": "8.23.1",
+    "qrcode": "1.5.4",
+    "sharp": "0.35.5"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.11"
+  }
+}

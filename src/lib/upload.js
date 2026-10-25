@@ -39,6 +39,6 @@ export async function uploadImage(file, folder = 'misc') {
 // (the part after `/media/`) so it can be passed to `storage.remove()`.
 export function pathFromMediaUrl(url) {
   if (!url) return null
-  const m = url.match(/\/storage\/v1\/object\/public\/media\/(.+)$/)
+  const m = url.match(/(?:\/storage\/v1\/object\/public\/media\/|\/api\/files\/media\/)([^?]+)(?:\?.*)?$/)
   return m ? decodeURIComponent(m[1]) : null
 }

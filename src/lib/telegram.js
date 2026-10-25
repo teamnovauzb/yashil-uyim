@@ -1,4 +1,6 @@
 // Telegram Web App helper
+import { usesVps, isNative } from './runtime'
+import { getSessionUser } from './session'
 export const tg = window.Telegram?.WebApp
 
 export function initTelegram() {
@@ -15,11 +17,16 @@ export function isTelegram() {
 }
 
 export function getTelegramUser() {
+  if (usesVps) return getSessionUser()
   return tg?.initDataUnsafe?.user || null
 }
 
 // Open external URL — uses Telegram's native opener when inside the mini app
 export function openExternal(url) {
+  if (usesVps && isNative) {
+    import('@capacitor/browser').then(({ Browser }) => Browser.open({ url })).catch(() => window.open(url, '_blank', 'noopener,noreferrer'))
+    return
+  }
   try {
     if (tg?.openLink) {
       tg.openLink(url, { try_instant_view: false })

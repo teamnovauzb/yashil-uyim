@@ -7,6 +7,8 @@ import { supabase } from '../lib/supabase'
 import { usePrefs, useT } from '../lib/prefs'
 import FeedbackPanel from '../components/FeedbackPanel'
 import ImageLightbox from '../components/ImageLightbox'
+import { usesVps } from '../lib/runtime'
+import { logout } from '../lib/session'
 
 const LANGS = [
   { code: 'uz', label: "O'zbek"  },
@@ -132,11 +134,13 @@ export default function Profile() {
           </div>
         </div>
 
-        {!inTg && (
+        {!inTg && !usesVps && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-5 text-sm text-amber-700">
             Telegram orqali kirilganda ko'proq funksiyalar mavjud.
           </div>
         )}
+
+        {usesVps && <button className="vps-secondary mb-5" onClick={() => logout().catch(() => window.alert('Chiqish amalga oshmadi. Qayta urinib ko‘ring.'))}>Hisobdan chiqish</button>}
 
         {/* Tickets */}
         <div className="mb-5">

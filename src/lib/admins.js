@@ -1,4 +1,6 @@
 import { supabase } from './supabase'
+import { usesVps } from './runtime'
+import { getSessionUser } from './session'
 
 // Hardcoded super admins — only these accounts can promote/demote other admins.
 export const SUPER_ADMIN_IDS = [543847007, 234471913, 6487636116]
@@ -24,6 +26,7 @@ export function invalidateAdmins() {
 }
 
 export async function isAdmin(telegramId) {
+  if (usesVps) return String(telegramId) === String(getSessionUser()?.id) && !!getSessionUser()?.is_admin
   if (!telegramId) return false
   if (SUPER_ADMIN_IDS.includes(Number(telegramId))) return true
   const admins = await loadAdmins()
@@ -31,6 +34,7 @@ export async function isAdmin(telegramId) {
 }
 
 export function isSuperAdmin(telegramId) {
+  if (usesVps) return (String(telegramId) === String(getSessionUser()?.id) && !!getSessionUser()?.is_super) || !!cache?.find(a => String(a.telegram_id) === String(telegramId))?.is_super
   if (!telegramId) return false
   return SUPER_ADMIN_IDS.includes(Number(telegramId))
 }
@@ -40,7 +44,7 @@ export async function addAdmin({ telegramId, username, firstName, addedBy }) {
     telegram_id: Number(telegramId),
     username: username || null,
     first_name: firstName || null,
-    is_super: false,
+    ...(!usesVps ? { is_super: false } : {}),
     added_by: addedBy ? Number(addedBy) : null,
   })
   invalidateAdmins()

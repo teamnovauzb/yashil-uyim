@@ -57,7 +57,7 @@ export default function Onboarding({ onDone }) {
           <img
             src={slide.image}
             alt=""
-            fetchpriority="high"
+            fetchPriority="high"
             decoding="async"
             className="absolute inset-0 w-full h-full object-cover"
           />

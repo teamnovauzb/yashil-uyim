@@ -1,0 +1,5 @@
+# Keep Linux deployment scripts and migration checksums stable across checkouts.
+server/** text eol=lf
+deploy/** text eol=lf
+scripts/*.mjs text eol=lf
+docs/*.md text eol=lf

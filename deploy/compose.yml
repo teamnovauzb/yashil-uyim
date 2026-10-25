@@ -1,0 +1,76 @@
+name: yashiluyim-vps
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: yashiluyim
+      POSTGRES_USER: yashiluyim
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yashiluyim -d yashiluyim"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # PostgreSQL has no published host port.
+  api:
+    image: yashiluyim-api:local
+    build: ../server
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3001
+      DATABASE_URL: postgresql://yashiluyim:${DB_PASSWORD}@db:5432/yashiluyim
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads:/app/uploads
+      - backups:/app/backups
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+  worker:
+    image: yashiluyim-api:local
+    profiles: [deliveries]
+    restart: unless-stopped
+    command: ["node", "src/worker.js"]
+    healthcheck: { disable: true }
+    depends_on:
+      db: { condition: service_healthy }
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://yashiluyim:${DB_PASSWORD}@db:5432/yashiluyim
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads:/app/uploads:ro
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+  web:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on: [api]
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN}
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../dist-vps:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
+volumes:
+  postgres:
+  uploads:
+  backups:
+  caddy_data:
+  caddy_config:

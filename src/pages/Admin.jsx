@@ -4,6 +4,8 @@ import {
   CalendarCheck, User as UserIcon, QrCode,
 } from 'lucide-react'
 import { getTelegramUser, closeMiniApp, isTelegram } from '../lib/telegram'
+import { usesVps } from '../lib/runtime'
+import { logout } from '../lib/session'
 import { loadAdmins, isAdmin, isSuperAdmin } from '../lib/admins'
 import { useT } from '../lib/prefs'
 import TicketsView from './admin/TicketsView'
@@ -12,7 +14,7 @@ import EventsView from './admin/EventsView'
 import AdminProfileView from './admin/AdminProfileView'
 import ScannerView from './admin/ScannerView'
 
-const SAFE_TOP = 'max(env(safe-area-inset-top), 4rem)'
+const SAFE_TOP = usesVps ? '0px' : 'max(env(safe-area-inset-top), 4rem)'
 
 const VIEWS = [
   { key: 'overview', labelKey: 'overview', Icon: LayoutDashboard, Component: OverviewView },
@@ -50,6 +52,7 @@ export default function Admin() {
   }, [tgUser?.id])
 
   const handleLogout = () => {
+    if (usesVps) { logout().catch(() => window.alert('Chiqish amalga oshmadi. Qayta urinib ko‘ring.')); return }
     if (isTelegram()) closeMiniApp()
     else window.location.href = '/'
   }

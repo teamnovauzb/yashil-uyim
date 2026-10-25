@@ -18,7 +18,7 @@ export default function BottomNav() {
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#B7E4C7] md:hidden">
+    <nav aria-label="Asosiy navigatsiya" className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#B7E4C7] md:hidden">
       <ul className="flex justify-around items-stretch">
         {items.map(({ to, label, icon: Icon, end }) => (
           <li key={to} className="flex-1">

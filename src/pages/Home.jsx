@@ -209,7 +209,7 @@ export default function Home() {
         <img
           src="/main.jpg"
           alt="Yashil Uyim — Ekologik Festival"
-          fetchpriority="high"
+          fetchPriority="high"
           decoding="async"
           className="block w-full h-auto"
         />

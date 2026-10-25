@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { isSuperAdmin } from '../../lib/admins'
+import { apiFetch } from '../../lib/api'
 
 const SCANNER_ID = 'qr-scanner-region'
 
@@ -36,7 +37,7 @@ export default function ScannerView({ tgUser }) {
     await stop()
 
     try {
-      const r = await fetch('/api/checkin', {
+      const r = await apiFetch('/api/checkin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, mode: 'lookup' }),
@@ -81,7 +82,7 @@ export default function ScannerView({ tgUser }) {
 
   const admit = async (count) => {
     if (!result?.token) return
-    const r = await fetch('/api/checkin', {
+    const r = await apiFetch('/api/checkin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token: result.token, count }),
@@ -108,7 +109,7 @@ export default function ScannerView({ tgUser }) {
   const resetTicket = async () => {
     if (!result?.token || !isSuper) return
     if (!confirm('Bu chiptaning kirishlarini nolga qaytarish?')) return
-    const r = await fetch('/api/checkin', {
+    const r = await apiFetch('/api/checkin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token: result.token, mode: 'reset' }),

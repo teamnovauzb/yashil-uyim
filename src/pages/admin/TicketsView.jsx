@@ -5,6 +5,7 @@ import {
   Check, X, TrendingUp, DollarSign, Search, Trash2, CheckSquare, Square, DoorOpen,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { apiFetch } from '../../lib/api'
 import { isSuperAdmin } from '../../lib/admins'
 import ImageLightbox from '../../components/ImageLightbox'
 
@@ -51,7 +52,7 @@ export default function TicketsView({ initial, tgUser }) {
   const handleAction = async (ticket, action) => {
     setActing(ticket.id)
     try {
-      const res = await fetch('/api/admin-action', {
+      const res = await apiFetch('/api/admin-action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, ticket }),

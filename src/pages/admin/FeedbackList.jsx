@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { MessageSquare, Send, CheckCircle2, RefreshCw } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { apiFetch } from '../../lib/api'
 
 export default function FeedbackList({ tgUser }) {
   const [items, setItems]   = useState([])
@@ -27,7 +28,7 @@ export default function FeedbackList({ tgUser }) {
     if (!text) return toast.error('Javob matni kiritilmagan')
     setBusy(item.id)
     try {
-      const res = await fetch('/api/suggestion', {
+      const res = await apiFetch('/api/suggestion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

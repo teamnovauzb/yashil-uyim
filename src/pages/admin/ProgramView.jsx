@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2, CalendarDays, Upload, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { uploadImage } from '../../lib/upload'
 import { getSetting } from '../../lib/settings'
+import { usesVps } from '../../lib/runtime'
 import { EditDrawer, Labeled } from './NewsView'
 
 const CATEGORIES = ['suhbat', 'master-klass', 'konsert', "ko'rgazma", 'boshqa']
@@ -32,6 +33,7 @@ function buildReminderMessage(program, startTime) {
 }
 
 async function upsertReminder(program, festivalDateIso) {
+  if (usesVps) return null // Scheduled atomically by the VPS when programs/settings are saved.
   const fireAt = computeReminderFireAt(festivalDateIso, program.start_time)
   // Always clean up any prior scheduled (still-pending) reminder for this
   // program so a re-save uses the new fire_at / message.
@@ -59,6 +61,7 @@ async function upsertReminder(program, festivalDateIso) {
 }
 
 async function cancelReminder(programId) {
+  if (usesVps) return
   await supabase
     .from('broadcasts')
     .delete()

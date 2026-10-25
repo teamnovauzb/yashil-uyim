@@ -9,6 +9,9 @@ import { getCachedPhone } from '../lib/contact'
 import { getSetting } from '../lib/settings'
 import { Paperclip, Image as ImageIcon, Send, ArrowLeft } from 'lucide-react'
 import XButton from '../components/XButton'
+import { usesVps } from '../lib/runtime'
+import { apiJson } from '../lib/session'
+import { apiFetch } from '../lib/api'
 
 // Receipts are user-uploaded screenshots, often multi-MB PNGs from phones.
 // Compressing client-side to ~150–250 KB cuts Supabase Storage egress
@@ -33,6 +36,7 @@ export default function Tickets() {
   const [venue, setVenue] = useState({ date: '', address: 'Toshkent' })
   const [payment, setPayment] = useState({ card: '9999 9999 9999 9999', holder: '', price: 10000 })
   const fileRef = useRef()
+  const checkoutKey = useRef(null)
 
   useEffect(() => {
     Promise.all([
@@ -63,6 +67,7 @@ export default function Tickets() {
 
   // Step 0 → 1: save form data, show payment info
   const onFormSubmit = (data) => {
+    checkoutKey.current = null
     setFormData({ ...data, ticket_count: Number(data.ticket_count) })
     setStep(1)
   }
@@ -86,6 +91,19 @@ export default function Tickets() {
     if (!receipt) return toast.error("Iltimos chekni yuklang")
     setLoading(true)
     try {
+      if (usesVps) {
+        checkoutKey.current ||= crypto.randomUUID()
+        const payload = new FormData()
+        payload.set('full_name', formData.full_name)
+        payload.set('phone', formData.phone)
+        payload.set('ticket_count', String(formData.ticket_count))
+        payload.set('request_key', checkoutKey.current)
+        payload.set('receipt', receipt)
+        const { ticket } = await apiJson('/api/tickets/checkout', { method: 'POST', body: payload })
+        setTicketInfo({ number: ticket.ticket_number, full_name: ticket.full_name, username: tgUser?.username, phone: ticket.phone, ticket_count: ticket.ticket_count })
+        setStep(3)
+        return
+      }
       const ticketNum = Math.floor(10000 + Math.random() * 90000)
 
       // 1. Save ticket — try with new columns, fall back to basic columns
@@ -144,7 +162,7 @@ export default function Tickets() {
       }
 
       // 3. Notify admin via bot
-      await fetch('/api/notify', {
+      await apiFetch('/api/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -168,7 +186,7 @@ export default function Tickets() {
       setStep(3)
     } catch (err) {
       console.error('Submit error:', err)
-      toast.error("Xatolik yuz berdi. Qayta urinib ko'ring.")
+      toast.error(usesVps ? err.message : "Xatolik yuz berdi. Qayta urinib ko'ring.")
     } finally {
       setLoading(false)
     }

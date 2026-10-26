@@ -1,4 +1,5 @@
-import { publicColumns, publicSettingKeys, publishContent } from './public-content.js'
+import { publishContent } from './public-content.js'
+import { readSupabasePublicContent as readSupabaseRows } from '../../shared/supabase-public.js'
 
 function httpsOrigin(value, name) {
   let url
@@ -33,18 +34,7 @@ function checkedContent(data) {
   if(!['programs','news','gallery'].every(rows)||!data.programs.every(row=>typeof row.title==='string')||!data.news.every(row=>typeof row.title==='string'&&typeof row.content==='string')||!data.gallery.every(row=>['image','video'].includes(row.media_type)))throw new Error('Invalid published content fields')
   return data
 }
-export async function readSupabasePublicContent({origin,key},fetchImpl=fetch,signal=AbortSignal.timeout(10000)) {
-  const headers={apikey:key,...(key.startsWith('sb_publishable_')?{}:{Authorization:`Bearer ${key}`})}
-  const data={}
-  for(const [table,columns]of Object.entries(publicColumns)) {
-    const query=new URLSearchParams({select:columns.join(','),order:'id.asc',limit:'1000'})
-    data[table]=await jsonGet(`${origin}/rest/v1/${table}?${query}`,headers,fetchImpl,signal)
-    if(!Array.isArray(data[table])||data[table].some(row=>!row||typeof row!=='object'||Array.isArray(row)))throw new Error('Invalid public content source')
-  }
-  data.settings=await jsonGet(`${origin}/rest/v1/settings?${new URLSearchParams({select:'key,value',key:`in.(${publicSettingKeys.join(',')})`})}`,headers,fetchImpl,signal)
-  if(!Array.isArray(data.settings)||data.settings.some(row=>!row||typeof row!=='object'||Array.isArray(row)))throw new Error('Invalid public settings source')
-  return checkedContent(publishContent(data))
-}
+export async function readSupabasePublicContent(...args) { return checkedContent(await readSupabaseRows(...args)) }
 export async function readPublicSource(config,fetchImpl=fetch) {
   const signal=AbortSignal.timeout(10000)
   if(config.source==='supabase')return readSupabasePublicContent(config,fetchImpl,signal)

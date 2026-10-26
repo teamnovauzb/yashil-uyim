@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { BrowserRouter, Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Capacitor } from '@capacitor/core'
 import { Leaf, Home, CalendarDays, Newspaper, Images, MapPin, Bookmark, Search, RefreshCw, ArrowUpRight, Info, WifiOff, X, ImageOff, Clock, ChevronRight } from 'lucide-react'
-import { initialContent, refreshContent, loadSaved, storeSaved, dateLabel, categoryName, mapLink, safeImage, eventDate, privacyUrl } from './data'
+import { initialContent, refreshContent, loadSaved, storeSaved, dateLabel, categoryName, mapLink, safeImage, eventDate, privacyUrl, contentSource } from './data'
 
 const tabs=[{to:'/',label:'Bosh',Icon:Home},{to:'/dastur',label:'Dastur',Icon:CalendarDays},{to:'/yangiliklar',label:'Yangiliklar',Icon:Newspaper},{to:'/galereya',label:'Galereya',Icon:Images},{to:'/manzil',label:'Manzil',Icon:MapPin}]
 async function openExternal(url) {
@@ -86,12 +86,25 @@ function Welcome({content,saved,onSave}) {
   </>
 }
 function About({content}) {
-  return <><div className="pub-page-heading"><p className="pub-kicker">ILOVA HAQIDA</p><h1>Ochiq festival qo‘llanmasi</h1></div><section className="pub-text-section"><h2>Hisobsiz foydalanish</h2><p>Festival dasturi, e’lonlar, galereya va manzilni hisob ochmasdan ko‘rishingiz mumkin. Ilova telefon raqami, kamera yoki aniq joylashuvingizni so‘ramaydi.</p><h2>Qurilmada saqlanadigan ma’lumot</h2><p>Saqlangan tadbirlar va oxirgi olingan dastur nusxasi shu qurilmada qoladi. Ular foydalanuvchi hisobiga yoki serverga yuborilmaydi. Bu nusxalarni qurilmangizning ilova ma’lumotlarini tozalash sozlamasi orqali o‘chirishingiz mumkin.</p><h2>Internetsiz foydalanish</h2><p>Dastur va yangiliklar matni ilovadagi nusxadan ochiladi. Yangi ma’lumotlar, tashqi xarita va ayrim surat yoki videolar uchun internet kerak bo‘lishi mumkin.</p><h2>Tashqi xizmatlar</h2><p>Rasm yoki yangi ma’lumot yuklanganda kontent xizmatiga oddiy internet so‘rovi yuboriladi. Xaritani ochish tanlangan xarita xizmatiga olib o‘tadi. Ilovada reklama yoki tahlil kuzatuvchisi qo‘shilmagan.</p>{privacyUrl&&<p><a className="pub-primary" href={privacyUrl} target="_blank" rel="noopener noreferrer">Maxfiylik siyosati<ArrowUpRight size={18} aria-hidden="true"/></a></p>}<h2>Ma’lumot nusxasi</h2><p><Clock size={17} aria-hidden="true"/> {dateLabel(content.updated_at,{time:true})}</p><p>Festival tafsilotlari o‘zgarishi mumkin. So‘nggi e’lonlarni tekshirib turing.</p></section></>
+  return <><div className="pub-page-heading"><p className="pub-kicker">ILOVA HAQIDA</p><h1>Ochiq festival qo‘llanmasi</h1></div><section className="pub-text-section"><h2>Hisobsiz foydalanish</h2><p>Festival dasturi, e’lonlar, galereya va manzilni hisob ochmasdan ko‘rishingiz mumkin. Ilova telefon raqami, kamera yoki aniq joylashuvingizni so‘ramaydi.</p><h2>Qurilmada saqlanadigan ma’lumot</h2><p>Saqlangan tadbirlar va oxirgi olingan dastur nusxasi shu qurilmada qoladi. Ular foydalanuvchi hisobiga yoki serverga yuborilmaydi. Bu nusxalarni qurilmangizning ilova ma’lumotlarini tozalash sozlamasi orqali o‘chirishingiz mumkin.</p><h2>Internetsiz foydalanish</h2><p>Dastur va yangiliklar matni ilovadagi nusxadan ochiladi. Yangi ma’lumotlar, tashqi xarita va ayrim surat yoki videolar uchun internet kerak bo‘lishi mumkin.</p><h2>Tashqi xizmatlar</h2><p>Rasm yoki yangi ma’lumot yuklanganda kontent xizmatiga oddiy internet so‘rovi yuboriladi. Xaritani ochish tanlangan xarita xizmatiga olib o‘tadi. Ilovada reklama yoki tahlil kuzatuvchisi qo‘shilmagan.</p><p><Link className="pub-primary" to="/maxfiylik">Maxfiylik siyosati<ChevronRight size={18} aria-hidden="true"/></Link></p>{privacyUrl&&<p><a href={privacyUrl} target="_blank" rel="noopener noreferrer">Siyosatning veb nusxasi ↗</a></p>}<h2>Ma’lumot nusxasi</h2><p><Clock size={17} aria-hidden="true"/> {dateLabel(content.updated_at,{time:true})}</p><p>Festival tafsilotlari o‘zgarishi mumkin. So‘nggi e’lonlarni tekshirib turing.</p></section></>
+}
+function Privacy() {
+  return <><div className="pub-page-heading"><p className="pub-kicker">YASHIL UYIM</p><h1>Maxfiylik siyosati</h1><p>Kuchga kirgan sana: 26-oktabr, 2026</p></div><section className="pub-text-section">
+    <p>Yashil Uyim — festival haqidagi ochiq ma’lumot ilovasi. Quyida ilovadan foydalanganda ma’lumotlar qanday ishlatilishi bayon qilingan.</p>
+    <h2>Hisob va shaxsiy ma’lumotlar</h2><p>Ro‘yxatdan o‘tish va tizimga kirish talab qilinmaydi. Ilova ism, telefon raqami, elektron pochta yoki to‘lov ma’lumotlarini kiritishni so‘ramaydi. Kontaktlar, kamera, mikrofon, suratlar kutubxonasi yoki aniq joylashuvga ruxsat talab qilinmaydi.</p>
+    <h2>Qurilmada saqlash</h2><p>Ochiq festival ma’lumotlari nusxasi va saqlangan dastur tanlovlari qurilmada saqlanadi. Tanlovlar hisobga bog‘lanmaydi va bizning ma’lumotlar bazamizga yuborilmaydi. Ularni Android sozlamalarida ilova xotirasini tozalash yoki ilovani o‘chirish orqali olib tashlashingiz mumkin.</p>
+    <h2>Internet va xizmat ko‘rsatuvchilar</h2><p>Ilova dastur, e’lonlar, rasm, video va manzilni olish uchun {contentSource==='supabase'?'Supabase va ochiq media hosting xizmatlariga':'kontent va media hosting xizmatlariga'} HTTPS orqali ulanadi. Xizmat ko‘rsatuvchilar kontentni yetkazish va xavfsizlik uchun IP manzil, so‘rov vaqti, qurilma yoki brauzer haqidagi texnik ma’lumotlar va so‘ralgan fayl manzilini olishi mumkin. Texnik jurnallar ularning o‘z siyosati va xavfsizlik talablariga muvofiq saqlanishi mumkin.</p>
+    <h2>Reklama va kuzatuv</h2><p>Ilovaga reklama, xulq-atvor tahlili yoki reklama identifikatori orqali kuzatish qo‘shilmagan. Shaxsiy ma’lumotlar sotilmaydi va maqsadli reklama uchun ishlatilmaydi.</p>
+    <h2>Tashqi havolalar</h2><p>Xarita, ijtimoiy tarmoq yoki boshqa saytni ochsangiz, o‘sha xizmatning maxfiylik siyosati amal qiladi. Manzil xaritasini ochish uchun ilova aniq joylashuvingizni olishni talab qilmaydi.</p>
+    <h2>Xavfsizlik va bolalar</h2><p>Kontent so‘rovlari HTTPS orqali yuboriladi. Internet orqali uzatish yoki saqlashning mutlaq xavfsizligi kafolatlanmaydi. Ilova umumiy festival ma’lumotini taqdim etadi; bolalar uchun hisob ochish, shaxsiy ma’lumot yuborish yoki shaxsiylashtirilgan reklama imkoniyati mavjud emas.</p>
+    <h2>O‘zgarishlar va bog‘lanish</h2><p>Ilova yoki xizmatlar o‘zgarsa, ushbu siyosat yangilanishi mumkin. So‘nggi versiya sanasi yuqorida ko‘rsatiladi. Maxfiylik bo‘yicha savollar yoki bolaga oid ma’lumot yuzasidan murojaat uchun Yashil Uyim jamoasining rasmiy sahifasi:</p><p><a href="https://www.instagram.com/yashil_uyim" target="_blank" rel="noopener noreferrer">Instagram: @yashil_uyim ↗</a></p>
+  </section></>
 }
 function Shell() {
   const [content,setContent]=useState(initialContent),[saved,setSaved]=useState(loadSaved)
   const [busy,setBusy]=useState(false),[status,setStatus]=useState(''),[offline,setOffline]=useState(!navigator.onLine),[photo,setPhoto]=useState(null)
   const boot=useRef(null),heading=useRef(null),location=useLocation()
+  useEffect(()=>{if(!status)return;const timer=setTimeout(()=>setStatus(''),7000);return()=>clearTimeout(timer)},[status])
   useEffect(()=>{
     const online=()=>setOffline(false),disconnected=()=>setOffline(true)
     window.addEventListener('online',online);window.addEventListener('offline',disconnected)
@@ -102,12 +115,12 @@ function Shell() {
   },[])
   useEffect(()=>{
     let active=true
-    const refresh=()=>{if(document.visibilityState==='visible'&&navigator.onLine)refreshContent().then(data=>{if(active)setContent(data)}).catch(()=>{})}
+    const refresh=()=>{if(document.visibilityState==='visible'&&navigator.onLine)refreshContent().then(data=>{if(active){setContent(data);setStatus('')}}).catch(()=>{})}
     window.addEventListener('online',refresh);document.addEventListener('visibilitychange',refresh)
     const interval=setInterval(refresh,300000)
     return()=>{active=false;clearInterval(interval);window.removeEventListener('online',refresh);document.removeEventListener('visibilitychange',refresh)}
   },[])
-  useEffect(()=>{window.scrollTo(0,0);heading.current?.focus()},[location.pathname])
+  useEffect(()=>{window.scrollTo(0,0);heading.current?.focus({preventScroll:true})},[location.pathname])
   useEffect(()=>{
     if(!Capacitor.isNativePlatform())return
     let listener,disposed=false
@@ -126,7 +139,7 @@ function Shell() {
   return <div className="public-app"><header className="pub-header"><Link className="pub-brand" to="/" aria-label="Yashil Uyim bosh sahifa"><Leaf size={26} aria-hidden="true"/><span>Yashil Uyim<small>Festival qo‘llanmasi</small></span></Link><div className="pub-header-actions"><button className="pub-icon-button" onClick={update} disabled={busy} aria-label="Ma’lumotlarni yangilash"><RefreshCw className={busy?'pub-spin':''} size={20}/></button><Link className="pub-icon-button" to="/ilova" aria-label="Ilova va maxfiylik haqida"><Info size={22}/></Link></div></header>
     {offline&&<div className="pub-offline" role="status"><WifiOff size={16} aria-hidden="true"/>Internetsiz · saqlangan nusxa</div>}
     <main ref={heading} tabIndex={-1} className="pub-main" id="main-content"><Routes>
-      <Route path="/" element={<Welcome content={content} saved={saved} onSave={onSave}/>}/><Route path="/dastur" element={<Program content={content} saved={saved} onSave={onSave}/>}/><Route path="/yangiliklar" element={<News content={content} onOpen={setPhoto}/>}/><Route path="/galereya" element={<Gallery content={content} onOpen={setPhoto}/>}/><Route path="/manzil" element={<Venue content={content} onError={setStatus}/>}/><Route path="/ilova" element={<About content={content}/>}/><Route path="*" element={<Navigate to="/" replace/>}/>
+      <Route path="/" element={<Welcome content={content} saved={saved} onSave={onSave}/>}/><Route path="/dastur" element={<Program content={content} saved={saved} onSave={onSave}/>}/><Route path="/yangiliklar" element={<News content={content} onOpen={setPhoto}/>}/><Route path="/galereya" element={<Gallery content={content} onOpen={setPhoto}/>}/><Route path="/manzil" element={<Venue content={content} onError={setStatus}/>}/><Route path="/ilova" element={<About content={content}/>}/><Route path="/maxfiylik" element={<Privacy/>}/><Route path="*" element={<Navigate to="/" replace/>}/>
     </Routes><p className="pub-data-stamp">Ma’lumot nusxasi: {dateLabel(content.updated_at)}</p></main>
     <p className="pub-live-status" role="status">{status}</p>
     <nav className="pub-tabs" aria-label="Asosiy navigatsiya">{tabs.map(tab=>{const TabIcon=tab.Icon;return <NavLink key={tab.to} to={tab.to} end={tab.to==='/'}><TabIcon size={22} aria-hidden="true"/><span>{tab.label}</span></NavLink>})}</nav>

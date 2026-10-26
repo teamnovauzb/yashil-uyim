@@ -1,8 +1,10 @@
 # Public guest mobile app
 
+**Current store build:** the later approved release uses public Supabase REST reads directly and the existing eco-tree logo. It has no accounts/login or Supabase Auth. A later VPS switch requires a new app version, as explicitly selected by the user. See [GOOGLE_PLAY_RELEASE.md](GOOGLE_PLAY_RELEASE.md) for signed Android artifacts, screenshots, publisher fields and source configuration. The API/gateway instructions below describe the alternative prepared path.
+
 The requested mobile app is a guest festival companion: no account, Telegram login, contact sharing, ticket purchase/payment, personal profile, feedback submission, or administrator route. It shows the actual festival program, news, gallery, and venue. Program search and saved sessions work on-device without an account.
 
-The original Mini App remains on its existing checkout/deployment. This implementation is local in the separate `codex/vps-ready` worktree. No production/native application bundle was built and no server was deployed or changed for this work.
+The original Mini App remains on its existing checkout/deployment. This implementation is local in the separate `codex/vps-ready` worktree. A guest Android bundle was later built with explicit user authorization; no server was deployed or changed.
 
 ## Data wiring after deployment
 

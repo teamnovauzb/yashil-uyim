@@ -18,6 +18,8 @@ test('guest reads real-shaped content immediately, without login, credentials, o
   await page.context().addCookies([{name:'old_session',value:'must-not-go-to-content-api',url:'http://127.0.0.1:4175'}])
   await page.goto('/')
   await expect(page.getByRole('heading',{name:'Yashil Uyim',exact:true})).toBeVisible()
+  const titleBox=await page.getByRole('heading',{name:'Yashil Uyim',exact:true}).boundingBox(),headerBox=await page.locator('.pub-header').boundingBox()
+  expect(titleBox.y).toBeGreaterThanOrEqual(headerBox.y+headerBox.height)
   await expect(page.getByRole('button',{name:'Telegram orqali kirish'})).toHaveCount(0)
   await expect(page.getByRole('navigation',{name:'Asosiy navigatsiya'}).getByRole('link')).toHaveCount(5)
   const endpoints=requests.filter(r=>new URL(r.url).pathname.startsWith('/api/'))

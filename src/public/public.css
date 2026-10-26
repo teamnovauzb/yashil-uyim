@@ -99,6 +99,6 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .pub-spin { animation:pub-spin 1s linear infinite; }
 @keyframes pub-spin { to { transform:rotate(360deg); } }
 @media(max-width:560px) { .pub-main { padding-top:24px; } .pub-welcome { grid-template-columns:1fr 120px; gap:16px; } .pub-welcome>img { align-self:start; } .pub-welcome h1 { font-size:32px; } .pub-lead { font-size:16px; } .public-app .pub-welcome .pub-primary { font-size:13px; padding:11px 12px; gap:4px; } .pub-news-grid { grid-template-columns:1fr; } .pub-gallery { grid-template-columns:repeat(2,minmax(0,1fr)); } .pub-section-heading h2 { font-size:18px; } }
-@media(max-width:350px) { .pub-welcome { grid-template-columns:1fr; } .pub-welcome>img { display:none; } .pub-program { gap:7px; } .pub-icon-button { width:44px; min-width:44px; } }
+@media(max-width:350px) { .pub-welcome { grid-template-columns:1fr; } .pub-welcome>img { display:none; } .pub-program { gap:7px; } .pub-icon-button { width:48px; min-width:48px; } }
 @media(prefers-color-scheme:dark) { :root { background:#101b14; } .public-app { --pub-bg:#101b14; --pub-surface:#19281f; --pub-ink:#f0f5eb; --pub-muted:#bdcbbb; --pub-line:#3c4e40; --pub-soft:#263f2f; --pub-accent:#a6dbb7; } }
 @media(prefers-reduced-motion:reduce) { .pub-spin { animation:none; } }

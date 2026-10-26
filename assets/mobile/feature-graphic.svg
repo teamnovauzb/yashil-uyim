@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <rect width="1024" height="500" fill="#f8f4ec"/>
+  <path d="M655 500c0-192 170-267 369-286v286Z" fill="#e6efdf"/>
+  <text x="64" y="110" fill="#245c40" font-family="Arial,sans-serif" font-size="17" font-weight="700" letter-spacing="3">FESTIVAL QO‘LLANMASI</text>
+  <text x="60" y="216" fill="#1a2820" font-family="Arial,sans-serif" font-size="80" font-weight="700" letter-spacing="-3">Yashil Uyim</text>
+  <text x="64" y="282" fill="#526258" font-family="Arial,sans-serif" font-size="26">Tabiatga yaqin. Bir-birimizga yaqin.</text>
+  <path d="M64 329h448" stroke="#d7d8c8" stroke-width="2"/>
+  <text x="64" y="377" fill="#245c40" font-family="Arial,sans-serif" font-size="22">Dastur · Yangiliklar · Manzil</text>
+  <image href="@@BRAND_IMAGE@@" x="644" y="56" width="360" height="360"/>
+</svg>

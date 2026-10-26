@@ -1,0 +1,9 @@
+App icon: Yashil Uyim ekologik daraxt logotipi.
+Feature graphic: Yashil Uyim festival qo‘llanmasi, dastur, yangiliklar va manzil. Yashil ekologik daraxt logotipi.
+
+01-home.png: Yashil Uyim bosh sahifasi: festival sanasi, manzili va dasturga o‘tish tugmasi.
+02-program.png: Festival dasturi: vaqtlar, mavzular, qidiruv va tadbirlarni qurilmada saqlash belgilari.
+03-news.png: Festival yangiliklari va e’lonlari.
+04-gallery.png: Festivaldan suratlar ko‘rsatilgan galereya.
+05-venue.png: Festival manzili, sanasi va tashqi xaritani ochish tugmasi.
+06-privacy.png: Yashil Uyim ilovasining maxfiylik siyosati va qurilmada saqlanadigan ma’lumotlar izohi.

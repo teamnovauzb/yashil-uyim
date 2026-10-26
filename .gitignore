@@ -38,3 +38,6 @@ dist-vps/
 dist-public/
 android/
 ios/
+releases/
+*.jks
+*.keystore

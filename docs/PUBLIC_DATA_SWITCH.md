@@ -1,5 +1,7 @@
 # Current Mini App data now, VPS data later
 
+**Release decision, 26–27 October 2026:** the user later selected direct Supabase reads for the first AAB and accepted that the VPS switch will need an app update. See [GOOGLE_PLAY_RELEASE.md](GOOGLE_PLAY_RELEASE.md). The permanent gateway below remains a prepared alternative; it is not deployed or selected by that release.
+
 The mobile app stays a public festival guide before, during, and after review: events/program, upcoming announcements, gallery, venue, search, and on-device saved sessions. It has no account creation, login, purchases, or private screens. This change prepares a data-host migration without changing that experience.
 
 ## One permanent address in the mobile binary

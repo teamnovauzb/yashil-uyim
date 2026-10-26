@@ -1,7 +1,12 @@
 import bundled from './content.json'
+import { readSupabasePublicContent } from '../../shared/supabase-public.js'
 
 const contentKey='yashiluyim.public.content.v1',savedKey='yashiluyim.public.saved.v1'
 export const contentApi=(import.meta.env.VITE_PUBLIC_API_URL||'').replace(/\/$/,'')
+export const contentSource=import.meta.env.VITE_PUBLIC_CONTENT_SOURCE||'api'
+const supabaseOrigin=(import.meta.env.VITE_PUBLIC_SUPABASE_URL||'').replace(/\/$/,'')
+const supabaseKey=import.meta.env.VITE_PUBLIC_SUPABASE_KEY||''
+if(!['api','supabase'].includes(contentSource))throw new Error('Invalid public content source')
 export const privacyUrl=import.meta.env.VITE_PUBLIC_PRIVACY_URL||''
 if(privacyUrl) {
   const url=new URL(privacyUrl)
@@ -23,9 +28,15 @@ export function initialContent() {
   return bundled
 }
 export async function refreshContent() {
-  const response=await fetch(`${contentApi}/api/public/content`,{method:'GET',credentials:'omit',signal:AbortSignal.timeout(15000),cache:'no-store'})
-  if(!response.ok)throw new Error('Ma’lumotlarni yangilab bo‘lmadi. Saqlangan nusxa ochiq qoladi.')
-  const data=await response.json()
+  let data
+  try {
+  if(contentSource==='supabase')data=await readSupabasePublicContent({origin:supabaseOrigin,key:supabaseKey})
+  else {
+    const response=await fetch(`${contentApi}/api/public/content`,{method:'GET',credentials:'omit',signal:AbortSignal.timeout(15000),cache:'no-store'})
+    if(!response.ok)throw new Error('Ma’lumotlarni yangilab bo‘lmadi. Saqlangan nusxa ochiq qoladi.')
+    data=await response.json()
+  }
+  } catch {throw new Error('Ma’lumotlarni yangilab bo‘lmadi. Saqlangan nusxa ochiq qoladi.')}
   if(!validContent(data))throw new Error('Ma’lumot formati mos emas. Saqlangan nusxa ochiq qoladi.')
   try{localStorage.setItem(contentKey,JSON.stringify(data))}catch{/* Reading still works when persistent storage is unavailable. */}
   return data

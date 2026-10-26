@@ -1,5 +1,7 @@
 # Local verification — 2026-10-26
 
+Later store-release authorization (26–27 October) supersedes the no-build snapshot below for the isolated guest app only. The signed Android AAB/APK, eco-tree store assets, live Supabase screenshot capture, production-entry checks, signature/SDK/permission verification and native emulator evidence are described in [GOOGLE_PLAY_RELEASE.md](GOOGLE_PLAY_RELEASE.md). The original Mini App was still not rebuilt or changed. PostgreSQL 18.6 was rerun after shared projection extraction: all 20 tests passed.
+
 Prepared on `codex/vps-ready` in `D:/Projects/teamnovauzb/yashiluyim-vps-ready`, based on `c56c6c6`.
 
 | Check | Result |

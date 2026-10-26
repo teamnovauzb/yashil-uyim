@@ -1,0 +1,35 @@
+Privacy Policy — Yashil Uyim
+Effective date: 26 October 2026
+
+Yashil Uyim is a public festival information app. This policy explains how information is handled when you use the app.
+
+INFORMATION YOU PROVIDE
+The app does not require registration or login. It does not ask you to submit your name, phone number, email address, payment information, or other personal details. The app does not request access to your contacts, camera, microphone, photo library, or precise device location.
+
+INFORMATION STORED ON YOUR DEVICE
+The app may store downloaded public festival content and your saved program selections on your device. This allows you to view previously downloaded information and keep track of activities that interest you. These selections are not linked to an account or sent to our database. You can remove locally stored information by clearing the app's storage in Android settings or uninstalling the app.
+
+INTERNET REQUESTS AND SERVICE PROVIDERS
+The app connects to Supabase and public media-hosting services to display current programs, announcements, images, videos, and venue information. When these requests occur, hosting providers receive technical information needed to deliver and protect their services. This can include your IP address, request time, browser or device information, and requested resource. Providers may retain technical logs according to their own policies and security requirements.
+
+The app does not include advertising, behavioral analytics, or advertising-identifier tracking. We do not sell personal information or use it for targeted advertising.
+
+EXTERNAL LINKS
+If you choose to open a map, social-media page, or another external website, that service's privacy policy applies. Opening a venue map does not require the Yashil Uyim app to access your precise location.
+
+SECURITY
+The app uses HTTPS for its public content requests. No internet transmission or storage method can be guaranteed completely secure.
+
+CHILDREN
+The app provides general festival information and does not offer accounts, personal-data submission, or personalized advertising for children. If you believe personal information about a child has been provided to us, contact us using the address below.
+
+YOUR CHOICES
+You can use the app without creating an account. You can clear locally stored content through your device settings and choose whether to open external services. No account-deletion request is necessary because the app does not create user accounts.
+
+CHANGES TO THIS POLICY
+We may update this policy when the app or its service providers change. The effective date above will identify the latest version.
+
+CONTACT
+For privacy questions or requests, contact the Yashil Uyim team:
+Email: [SUPPORT EMAIL — replace before publishing]
+Official festival page: https://www.instagram.com/yashil_uyim

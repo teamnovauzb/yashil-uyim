@@ -1,0 +1,13 @@
+# Bootstrap ONLY the new hostname while obtaining its TLS certificate.
+# No default_server and no changes to other sites. Do not proxy login over HTTP.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name @@DOMAIN@@;
+    access_log off;
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/lib/yashiluyim/acme;
+        try_files $uri =404;
+    }
+    location / { return 503; }
+}

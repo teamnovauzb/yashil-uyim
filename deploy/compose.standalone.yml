@@ -1,3 +1,5 @@
+# Standalone fresh-host reference ONLY. Do not run on the shared Hetzner/Nginx host.
+# Use deploy/hetzner/ for that server. This non-default filename requires explicit selection.
 name: yashiluyim-vps
 services:
   db:

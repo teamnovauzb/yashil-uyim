@@ -1,0 +1,43 @@
+[Unit]
+Description=Yashil Uyim Telegram worker (explicitly opt-in)
+After=network-online.target postgresql@18-main.service
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=yashiluyim
+Group=yashiluyim
+WorkingDirectory=/srv/yashiluyim/current/server
+EnvironmentFile=/etc/yashiluyim/app.env
+ExecCondition=/usr/bin/test ${ENABLE_TELEGRAM_DELIVERY} = true
+ExecStart=/usr/bin/node src/worker.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+AmbientCapabilities=
+ReadOnlyPaths=/var/lib/yashiluyim/uploads
+MemoryHigh=128M
+MemoryMax=256M
+CPUQuota=25%
+TasksMax=64
+OOMPolicy=stop
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=yashiluyim-worker
+
+[Install]
+WantedBy=multi-user.target

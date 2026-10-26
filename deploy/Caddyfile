@@ -1,3 +1,4 @@
+# Standalone host only. Preserve the shared server's existing Nginx; see deploy/hetzner/.
 {$APP_DOMAIN} {
   encode zstd gzip
   header {

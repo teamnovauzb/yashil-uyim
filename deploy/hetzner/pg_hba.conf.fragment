@@ -1,0 +1,6 @@
+# Insert BEFORE generic local/host rules, preserving every existing rule for other roles.
+# Scope is only the two NEW Yashil Uyim roles. Do not change listen_addresses or open 5432.
+local all yashiluyim_app,yashiluyim_migrator reject
+host yashiluyim yashiluyim_app,yashiluyim_migrator 127.0.0.1/32 scram-sha-256
+host all yashiluyim_app,yashiluyim_migrator 0.0.0.0/0 reject
+host all yashiluyim_app,yashiluyim_migrator ::/0 reject

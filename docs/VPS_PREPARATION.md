@@ -14,7 +14,7 @@ The upcoming festival should continue using the existing deployment. Schedule th
 - Transactional, idempotent checkout and ticket approval. Server-generated ticket numbers, client request keys, preserved QR tokens on repeated approval, atomic single-seat check-in, super-admin-only reset, and audit records.
 - Durable Telegram delivery jobs, retry leases, role-checked callbacks, webhook authentication, and Tashkent-time program reminders. QR delivery is generated from stored tokens, independently of QR file-upload availability.
 - An opt-in frontend adapter (`VITE_BACKEND=vps`) reusing the existing screens, a code-login screen, logout, and Capacitor configuration for Android/iOS. The default mode still uses the existing Supabase/Telegram integration.
-- Explicit export/import/reconciliation tools and a Docker Compose/Caddy deployment definition. No ticket-retention deletion job exists on the VPS backend.
+- Explicit export/import/reconciliation tools and a native Nginx/systemd shared-host profile and a separate standalone Docker/Caddy definition. No ticket-retention deletion job exists on the VPS backend.
 
 ## Local verification
 
@@ -31,7 +31,7 @@ npm run test:e2e
 npm run test:legacy
 ```
 
-`server:test` uses embedded PostgreSQL (PGlite) and mock Telegram transport. `test:postgres` creates and removes only its own randomly named local PostgreSQL 17 container; it does not build an application or use existing databases. The harness refuses external database hosts or a non-test database user. Both run the same authentication, authorization, receipt, approval, concurrent scanner/worker, reminder, and migration tests.
+`server:test` uses embedded PostgreSQL (PGlite) and mock Telegram transport. `test:postgres` creates and removes only its own randomly named local PostgreSQL 18 container (or explicitly selected 17); it does not build an application or use existing databases. The harness refuses external database hosts or a non-test database user. Both run the same authentication, authorization, receipt, approval, concurrent scanner/worker, reminder, and migration tests.
 
 Browser checks use a local Vite development server, mocked API responses, and blocked external requests. They exercise code entry/error recovery, profile/logout, administrator navigation, and compatibility with the default browser/Telegram modes. They do not contact Supabase or send Telegram messages. Screenshots/traces stay under ignored `.local/`.
 
@@ -82,32 +82,9 @@ The source export is a database snapshot, not a distributed snapshot of database
 
 ## Future VPS setup and cutover
 
-These are instructions for a **new, isolated target** after server/domain credentials are supplied. They have not been executed. Do not run them against the upcoming event's existing system.
+For the assessed shared Hetzner server, use [deploy/hetzner/README.md](../deploy/hetzner/README.md). That profile uses the existing Nginx and PostgreSQL 18 with dedicated systemd services, runtime/migration database roles, and a new application domain. It does not install Docker/Caddy or replace existing sites/services. All files remain local; installation, configuration reloads, data transfer, and cutover require a later explicit deployment instruction.
 
-1. Configure a private server firewall and DNS. Copy `deploy/.env.example` to `deploy/.env`; supply the actual domain, a hex database password, independent random secrets, and a **test** bot initially. Keep `ENABLE_TELEGRAM_DELIVERY=false`. Restrict the file to the operator (`chmod 600`). PostgreSQL/API ports are not published; Caddy is the only public entry point.
-2. At the worktree root, produce the future web bundle with `npm run build:vps`. This writes `dist-vps`, never `dist`. The current task deliberately did not run this command. A website served on the API domain uses an empty `VITE_API_URL`.
-3. In `deploy`, build only the new backend (`docker compose build api`), start the new database (`docker compose up -d db`), and initialize its schema:
-
-   ```sh
-   docker compose run --rm --no-deps api sh -c 'MIGRATION_TARGET_URL="$DATABASE_URL" node scripts/migrate.js --apply'
-   docker compose up -d api web
-   ```
-
-4. Copy a rehearsal snapshot into the target backup volume as the application user:
-
-   ```sh
-   docker compose exec -T api mkdir -p /app/backups/migration
-   tar -C /secure/path/to/snapshot -cf - . | docker compose exec -T api tar -xf - -C /app/backups/migration
-   docker compose exec -T -e SNAPSHOT_DIR=/app/backups/migration api sh -c 'MIGRATION_TARGET_URL="$DATABASE_URL" node scripts/transfer.js import'
-   ```
-
-   Review the plan, then repeat the last command with `import --apply`. Run `verify` the same way. Use a fresh empty target for every rehearsal; importing over existing records is intentionally refused.
-5. Only after reconciliation, configure the actual bootstrap super-admin IDs and run `scripts/bootstrap-admins.js --apply` with the explicit target variable as above. Granting these roles before reconciliation can legitimately change the expected row counts. Configure the test bot webhook manually with the matching `TELEGRAM_WEBHOOK_SECRET`; no repository script changes a webhook automatically. Verify login, receipt approval, QR display, two-device scanning, and denied permissions on the test system.
-6. Before the eventual final switch, freeze the old system, make fresh source/target backups, repeat export/import/verification to a fresh target, and verify all owners/assets/check-ins. Update website/Mini App routing and the production bot webhook together. Resume a single bot/worker only after validation. Set `ENABLE_TELEGRAM_DELIVERY=true` and start exactly one worker with `docker compose --profile deliveries up -d worker` when queued broadcasts/reminders have been reviewed.
-
-`deploy/backup.sh` stops only previously running target API/worker services, saves the database and uploads consistently, hashes them, and restarts those services. Schedule it on the new VPS and copy backups off-server. A backup without its matching uploaded files is incomplete. Test a restore into a separate empty PostgreSQL instance and upload volume before cutover; never test restore over the serving database.
-
-Before target writes resume, rollback means returning routing/webhook to the frozen old system and stopping the target worker. After target writes resume, route-only rollback would lose new users/tickets/check-ins: freeze the target, export/reconcile its new data, and plan the reverse transfer first. Never restore an older database over newer transactions.
+The separate fresh-host Docker/Caddy reference is now deploy/compose.standalone.yml and must be selected explicitly with docker compose -f compose.standalone.yml. It must not be used on the shared server. The older deploy/backup.sh is only for that standalone Docker profile; deploy/hetzner/backup.sh is the native shared-host backup.
 
 ## Mobile handoff
 
@@ -127,4 +104,4 @@ The initialization script adds camera permission descriptions and generates loca
 
 - Telegram delivery has durable retries and single-claim leases. Telegram does not offer an idempotency key: a process crash after Telegram accepts a message but before the database acknowledges it can still cause a duplicate. Do not claim exactly-once delivery.
 - This system intentionally has no automatic ticket/receipt deletion. Choose and implement an event-aware retention/archive policy before adding scheduled deletion.
-- No actual source schema, production storage inventory, VPS configuration, bot/webhook, native build, or device behavior has been verified in this preparation. The import's strict schema checks will expose differences when credentials arrive.
+- The server inventory was inspected read-only in the earlier audit; no remote connection or server write was performed during the shared-host adaptation. Actual source schema/storage migration, bot/webhook, target installation, native builds, and device behavior remain unverified. The import's strict schema checks will expose differences when credentials arrive.

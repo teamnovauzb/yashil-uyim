@@ -4,7 +4,7 @@ const publicApp = process.env.YASHILUYIM_MOBILE_MODE !== 'vps'
 const config: CapacitorConfig = {
   appId: 'uz.teamnova.yashiluyim',
   appName: 'Yashil Uyim',
-  webDir: publicApp ? 'dist-public' : 'dist-vps',
+  webDir: process.env.YASHILUYIM_MOBILE_WEB_DIR || (publicApp ? 'dist-public' : 'dist-vps'),
   ...(publicApp ? { includePlugins: ['@capacitor/app', '@capacitor/browser'] } : {}),
   server: { androidScheme: 'https', hostname: 'localhost' },
   android: { allowMixedContent: false },

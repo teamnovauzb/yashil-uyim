@@ -8,6 +8,8 @@ For the guest mobile app to read the current published Supabase data first and s
 
 The user subsequently selected direct public Supabase reads for the first Google Play release and accepted a new app update for the later VPS switch. The signed AAB, existing eco-tree icon, screenshots, listing text and checks are documented in [docs/GOOGLE_PLAY_RELEASE.md](docs/GOOGLE_PLAY_RELEASE.md).
 
+Version 1 is reported submitted for review. [docs/NEXT_ANDROID_RELEASE.md](docs/NEXT_ANDROID_RELEASE.md) covers the prepared version 2: the actual supplied logo, verified R8 mapping, local-only QA, and a guarded VPS build after deployment. The submitted artifacts are preserved.
+
 Useful local checks: `npm run lint:vps`, `npm run server:test`, `npm run test:postgres`, `npm run test:e2e`, and `npm run test:legacy`. No application build is required for those checks.
 
 The [guest mobile app](docs/PUBLIC_GUEST_APP.md) is available with `npm run dev:public` and `npm run test:public`. It has no login and reads real festival content from the configurable VPS public endpoint; wiring that URL is deferred until deployment. Its local content copy is only an offline fallback. It is separate from the existing Telegram app.

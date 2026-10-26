@@ -20,7 +20,7 @@ export default defineConfig(({ mode, command }) => {
   return {
     plugins: [react(), tailwindcss(), ...((vps || publicApp) ? [{ name: 'mobile-viewport', transformIndexHtml: {order:'pre',handler: html => {
       const viewport=html.replace('width=device-width, initial-scale=1.0, user-scalable=no', 'width=device-width, initial-scale=1.0, viewport-fit=cover')
-      return publicApp ? viewport.replace('/src/main.jsx','/src/public/main.jsx').replace('/favicon.svg','/landing.png').replace(/\s*<script src="https:\/\/telegram\.org\/js\/telegram-web-app\.js"><\/script>/,'').replace(/\s*<link rel="(?:preload|prefetch)" as="image" href="\/(?:intro|2|3)\.jpg"[^>]*>/g,'') : viewport
+      return publicApp ? viewport.replace('/src/main.jsx','/src/public/main.jsx').replace('type="image/svg+xml" href="/favicon.svg"','type="image/jpeg" href="/assets/mobile/logo.jpg"').replace(/\s*<script src="https:\/\/telegram\.org\/js\/telegram-web-app\.js"><\/script>/,'').replace(/\s*<link rel="(?:preload|prefetch)" as="image" href="\/(?:intro|2|3)\.jpg"[^>]*>/g,'') : viewport
     }} }] : [])],
     ...(publicApp ? { build: { outDir: 'dist-public' } } : {}),
     define: { 'import.meta.env.VITE_BACKEND': JSON.stringify(vps ? 'vps' : 'legacy') },

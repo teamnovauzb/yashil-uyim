@@ -10,6 +10,8 @@ Prepared on `codex/vps-ready` in `D:/Projects/teamnovauzb/yashiluyim-vps-ready`,
 | VPS browser journeys, mobile Chrome viewport | 3 passed |
 | Default browser/Telegram compatibility journeys | 2 passed |
 | Separate guest browser journeys, mobile Chrome viewport | 5 passed; login-free GET-only access without cookies, API refresh, offline fallback, saved sessions, private-route exclusion, 320px layout, dark mode, and keyboard input |
+| Separate public-source gateway checks | 6 passed; read-only Supabase projection, cache/concurrency, same route on VPS source, no auth/write endpoints, upstream failure recovery, source key/origin validation |
+| Live published-content read through the local gateway handler | HTTP 200; 7 programs, 4 news, 12 gallery, 5 venue/date fields; anonymous GETs only, no listener/deployment or database writes |
 | Scoped VPS/guest/mobile ESLint | Passed |
 | Server JavaScript syntax | Passed |
 | Capacitor configuration TypeScript check | Passed |

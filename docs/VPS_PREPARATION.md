@@ -88,7 +88,7 @@ The separate fresh-host Docker/Caddy reference is now deploy/compose.standalone.
 
 ## Mobile handoff
 
-The requested store-facing variant is now the **guest app**, described in [PUBLIC_GUEST_APP.md](PUBLIC_GUEST_APP.md). It uses `dist-public`, no login, and the configurable VPS public content endpoint. Its API URL will be set after the later deployment. The authenticated mobile profile below remains an explicit alternative, not the guest app's default.
+The requested store-facing variant is now the **guest app**, described in [PUBLIC_GUEST_APP.md](PUBLIC_GUEST_APP.md). It uses `dist-public`, no login, and one public content endpoint. For current Supabase content before VPS migration, host the separate public gateway in [PUBLIC_DATA_SWITCH.md](PUBLIC_DATA_SWITCH.md) and set its permanent origin before the first store build. The upstream can then change server-side after deployment/migration. The authenticated mobile profile below remains an explicit alternative, not the guest app's default.
 
 The implementation follows the existing green festival palette: low visual variance (3), low motion (2), comfortable density (4), visible labels, a paste/autofill-friendly code field, 48px controls, safe-area CSS, and network/error recovery. Android gets a back-button integration; iOS uses the native WebView/system browser. Native refresh storage is used only on native platforms; the secure-storage plugin's browser localStorage fallback is never called.
 

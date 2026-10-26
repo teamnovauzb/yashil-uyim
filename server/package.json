@@ -9,6 +9,8 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env src/index.js",
     "worker": "node --env-file-if-exists=.env src/worker.js",
+    "public:gateway": "node --env-file-if-exists=.env src/public-gateway-main.js",
+    "test:gateway": "node --test test/public-gateway.test.js",
     "migrate": "node --env-file-if-exists=.env scripts/migrate.js",
     "migration:export": "node --env-file-if-exists=.env scripts/transfer.js export",
     "migration:import": "node --env-file-if-exists=.env scripts/transfer.js import",

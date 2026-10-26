@@ -6,16 +6,16 @@ The original Mini App remains on its existing checkout/deployment. This implemen
 
 ## Data wiring after deployment
 
-The primary data source is **the VPS**, through `GET /api/public/content`. The screen reads this endpoint on launch, manual refresh, return to the foreground, reconnection, and every five minutes while visible. It sends no authentication header/cookie and makes no data-write requests. The endpoint returns only explicitly projected program/news/gallery columns and the five venue/date settings; customer records, tickets/receipts, roles, feedback, payment details, and private asset links are excluded.
+The live data source is `GET /api/public/content` at one configured HTTPS origin. To ship with the Mini App's current Supabase content and migrate to the VPS later without changing installed apps, use the separate public gateway in [PUBLIC_DATA_SWITCH.md](PUBLIC_DATA_SWITCH.md). The screen reads this endpoint on launch, manual refresh, return to the foreground, reconnection, and every five minutes while visible. It sends no authentication header/cookie and makes no data-write requests. Both sources return only explicitly projected program/news/gallery columns and the five venue/date settings; customer records, tickets/receipts, roles, feedback, payment details, and private asset links are excluded.
 
-After the separately approved VPS deployment and data migration, copy `deploy/public-app.env.example` to `.env.public.local` in this isolated checkout and set:
+Before the first store build, host and verify the separately approved gateway (or the final VPS if migrating before release), then copy `deploy/public-app.env.example` to `.env.public.local` in this isolated checkout and set:
 
 ```dotenv
-VITE_PUBLIC_API_URL=https://THE_ACTUAL_GUEST_API_DOMAIN
+VITE_PUBLIC_API_URL=https://THE_STABLE_GUEST_API_DOMAIN
 VITE_PUBLIC_PRIVACY_URL=https://THE_PUBLISHER_PRIVACY_POLICY
 ```
 
-The API setting is a public HTTPS origin, not a key/password. Nothing needs changing in the screens when that URL is known. The public release build refuses an absent/invalid HTTPS origin. Set the publisher-approved privacy URL to expose its link on the app information screen. Verify the real endpoint and its media URLs before making the final store binary. Updates written to the same VPS database appear after refresh without a new app release. The original Mini App's Supabase database and the future VPS database are not automatically synchronized: complete the approved data migration/source-of-truth cutover first rather than assuming a rehearsal copy stays current.
+The API setting is a public HTTPS origin, not a key/password. Nothing needs changing in the screens when that URL is known. This setting is compiled into the binary: changing it locally later requires another binary; use the permanent gateway origin for a server-side switch. The public release build refuses an absent/invalid HTTPS origin. Set the publisher-approved privacy URL to expose its link on the app information screen. Verify the real endpoint and its media URLs before making the final store binary. Updates in the selected live source appear after refresh without a new app release. The original Mini App's Supabase database and the future VPS database are not automatically synchronized: complete the approved data migration/source-of-truth cutover before switching the gateway rather than assuming a rehearsal copy stays current.
 
 During local development with an empty URL, `/api` is proxied to the local backend on 127.0.0.1:3001. Browser tests substitute controlled responses; no VPS deployment is required for them.
 

@@ -35,5 +35,6 @@ deploy/hetzner/*.env
 uploads/
 backups/
 dist-vps/
+dist-public/
 android/
 ios/

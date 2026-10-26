@@ -88,13 +88,15 @@ The separate fresh-host Docker/Caddy reference is now deploy/compose.standalone.
 
 ## Mobile handoff
 
+The requested store-facing variant is now the **guest app**, described in [PUBLIC_GUEST_APP.md](PUBLIC_GUEST_APP.md). It uses `dist-public`, no login, and the configurable VPS public content endpoint. Its API URL will be set after the later deployment. The authenticated mobile profile below remains an explicit alternative, not the guest app's default.
+
 The implementation follows the existing green festival palette: low visual variance (3), low motion (2), comfortable density (4), visible labels, a paste/autofill-friendly code field, 48px controls, safe-area CSS, and network/error recovery. Android gets a back-button integration; iOS uses the native WebView/system browser. Native refresh storage is used only on native platforms; the secure-storage plugin's browser localStorage fallback is never called.
 
 After the target API is ready, set `VITE_API_URL` to its HTTPS origin in a worktree-local `.env.vps.local`, run `npm run build:vps`, then:
 
 ```sh
-npm run mobile:init -- android
-npm run mobile:sync
+npm run mobile:init -- android vps
+npm run mobile:sync -- vps
 # On macOS/Xcode, use ios instead of android.
 ```
 

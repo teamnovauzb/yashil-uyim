@@ -25,7 +25,7 @@ try {
   const version=docker(['exec',name,'psql','-XAt','-U','yu_test_runner','-d','postgres','-c','SHOW server_version_num']).stdout.trim()
   if(Math.floor(Number(version)/10000)!==Number(major))throw new Error('Unexpected PostgreSQL test version')
   console.log(`Confirmed server_version_num=${version}`)
-  const resultTests=spawnSync(process.execPath,['--test','--test-concurrency=1','server/test/app.test.js','server/test/migration.test.js','server/test/hetzner.test.js'],{
+  const resultTests=spawnSync(process.execPath,['--test','--test-concurrency=1','server/test/app.test.js','server/test/migration.test.js','server/test/hetzner.test.js','server/test/public-content.test.js'],{
     stdio:'inherit',env:{...dockerEnv,TEST_POSTGRES_CONTAINER:name,TEST_POSTGRES_ADMIN_URL:`postgresql://yu_test_runner:${password}@${published}/postgres`},
   })
   if(resultTests.error)throw resultTests.error

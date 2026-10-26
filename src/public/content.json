@@ -1,0 +1,211 @@
+{
+  "version": 1,
+  "updated_at": "2026-10-26T04:26:10.061Z",
+  "programs": [
+    {
+      "id": 62,
+      "title": "DJ/OCHILISH/SOVRINLI O'YIN",
+      "description": null,
+      "speaker": null,
+      "category": "boshqa",
+      "image_url": null,
+      "start_time": "12:00",
+      "end_time": "13:00"
+    },
+    {
+      "id": 63,
+      "title": "IMO-ISHORA TILINI O'RGANAMIZ",
+      "description": "Imo-ishora tili bo'yicha mutaxassis",
+      "speaker": "E'zoza Ahmedova",
+      "category": "master-klass",
+      "image_url": null,
+      "start_time": "13:00",
+      "end_time": "14:00"
+    },
+    {
+      "id": 64,
+      "title": "JAMOAVIY O'YIN/ORZUDAGI SHAHAR",
+      "description": null,
+      "speaker": null,
+      "category": "boshqa",
+      "image_url": null,
+      "start_time": "13:40",
+      "end_time": "14:00"
+    },
+    {
+      "id": 65,
+      "title": "OSHLASHAMIZ!",
+      "description": null,
+      "speaker": null,
+      "category": "boshqa",
+      "image_url": null,
+      "start_time": "14:00",
+      "end_time": "14:40"
+    },
+    {
+      "id": 66,
+      "title": "PLASTIK MUAMMO EMAS(?)",
+      "description": null,
+      "speaker": "Mo'tabar Xushvaqtova - ekofaol",
+      "category": "suhbat",
+      "image_url": null,
+      "start_time": "15:00",
+      "end_time": "15:40"
+    },
+    {
+      "id": 67,
+      "title": "ECO-FEMINISM: IS CLIMATE CHANGE AFFECTING BOTH MEN AND WOMEN EQUALLY?",
+      "description": "(english session)",
+      "speaker": "Shakhzoda Mirakova - jurnalist, hujjatli film yaratuvchisi",
+      "category": "boshqa",
+      "image_url": null,
+      "start_time": "16:00",
+      "end_time": "16:40"
+    },
+    {
+      "id": 68,
+      "title": "MUSIQIY OQSHOM/JONLI IJRO",
+      "description": null,
+      "speaker": "Mansur Toshmatov Sevara To'lanova bilan",
+      "category": "konsert",
+      "image_url": null,
+      "start_time": "17:00",
+      "end_time": "18:00"
+    }
+  ],
+  "news": [
+    {
+      "id": 35,
+      "title": "KUN BO'YI",
+      "content": "(13:00-16:00)",
+      "image_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/news/1792659051602_e3i80a.png",
+      "published_at": "2026-10-22T08:51:33.103+00:00"
+    },
+    {
+      "id": 36,
+      "title": "KID'S JOY",
+      "content": "(BOLALAR + OTA-ONALAR)",
+      "image_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/news/1792659102918_zsohzh.png",
+      "published_at": "2026-10-22T08:52:08.368+00:00"
+    },
+    {
+      "id": 37,
+      "title": "MAIN ZONE",
+      "content": "(KATTALAR VA YOSHLAR)",
+      "image_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/news/1792659143731_qxohng.png",
+      "published_at": "2026-10-22T08:52:39.437+00:00"
+    },
+    {
+      "id": 38,
+      "title": "YASHIL UYIM",
+      "content": "BUXORODAAA!!!",
+      "image_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/news/1792659199917_bd5sh8.png",
+      "published_at": "2026-10-22T08:53:45.553+00:00"
+    }
+  ],
+  "gallery": [
+    {
+      "id": 31,
+      "media_type": "image",
+      "media_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/gallery/1788155689464_bb873y.jpeg",
+      "thumbnail_url": null,
+      "caption": null,
+      "sort_order": 96
+    },
+    {
+      "id": 32,
+      "media_type": "image",
+      "media_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/gallery/1788155704519_5m5asw.jpeg",
+      "thumbnail_url": null,
+      "caption": null,
+      "sort_order": 95
+    },
+    {
+      "id": 33,
+      "media_type": "image",
+      "media_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/gallery/1788155714969_ktwusc.jpeg",
+      "thumbnail_url": null,
+      "caption": null,
+      "sort_order": 94
+    },
+    {
+      "id": 34,
+      "media_type": "image",
+      "media_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/gallery/1788155728556_0nawyp.jpeg",
+      "thumbnail_url": null,
+      "caption": null,
+      "sort_order": 93
+    },
+    {
+      "id": 35,
+      "media_type": "image",
+      "media_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/gallery/1788155742642_eful0y.jpeg",
+      "thumbnail_url": null,
+      "caption": null,
+      "sort_order": 92
+    },
+    {
+      "id": 36,
+      "media_type": "image",
+      "media_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/gallery/1788155753478_vy717s.jpeg",
+      "thumbnail_url": null,
+      "caption": null,
+      "sort_order": 91
+    },
+    {
+      "id": 37,
+      "media_type": "image",
+      "media_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/gallery/1788155768004_q1iorl.jpeg",
+      "thumbnail_url": null,
+      "caption": null,
+      "sort_order": 90
+    },
+    {
+      "id": 38,
+      "media_type": "image",
+      "media_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/gallery/1788155784115_6lf2qj.jpeg",
+      "thumbnail_url": null,
+      "caption": null,
+      "sort_order": 89
+    },
+    {
+      "id": 39,
+      "media_type": "image",
+      "media_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/gallery/1788155814132_8givo6.jpeg",
+      "thumbnail_url": null,
+      "caption": null,
+      "sort_order": 88
+    },
+    {
+      "id": 40,
+      "media_type": "image",
+      "media_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/gallery/1788155831440_lb9pee.jpeg",
+      "thumbnail_url": null,
+      "caption": null,
+      "sort_order": 87
+    },
+    {
+      "id": 41,
+      "media_type": "image",
+      "media_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/gallery/1788155853752_f8d6j9.jpeg",
+      "thumbnail_url": null,
+      "caption": null,
+      "sort_order": 86
+    },
+    {
+      "id": 22,
+      "media_type": "image",
+      "media_url": "https://wrvmkdkdkizzocwxuulx.supabase.co/storage/v1/object/public/media/gallery/1786460924588_61sizq.jpeg",
+      "thumbnail_url": null,
+      "caption": null,
+      "sort_order": 97
+    }
+  ],
+  "settings": {
+    "festival_date": "2026-10-31T12:00:00",
+    "festival_address": "PLOVE RESTAURANT - TAGBANDBOFON KO'CHASI 3-UY (BUXORO)",
+    "festival_lat": "39.777284",
+    "festival_lng": "64.413153",
+    "festival_yandex_url": "https://yandex.uz/maps/-/CXRWfK2A"
+  }
+}

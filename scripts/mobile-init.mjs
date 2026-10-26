@@ -3,12 +3,14 @@ import { spawnSync } from 'node:child_process'
 import path from 'node:path'
 
 const platform=process.argv[2]
-if(!['android','ios'].includes(platform))throw new Error('Use npm run mobile:init -- android|ios')
+const mode=process.argv[3]||'public'
+if(!['android','ios'].includes(platform)||!['public','vps'].includes(mode)||process.argv.length>4)throw new Error('Use npm run mobile:init -- android|ios public|vps (default: public)')
 if(platform==='ios'&&process.platform!=='darwin')throw new Error('iOS project generation requires macOS/Xcode')
-await access('dist-vps/index.html').catch(()=>{throw new Error('Build the isolated VPS/mobile bundle first, after setting the target API URL. This command never builds it for you.')})
+await access(`${mode==='public'?'dist-public':'dist-vps'}/index.html`).catch(()=>{throw new Error('Build the selected isolated mobile bundle first. This command never builds it for you.')})
 const cli=path.resolve('node_modules/@capacitor/cli/bin/capacitor')
-const result=spawnSync(process.execPath,[cli,'add',platform],{stdio:'inherit'})
-if(result.status!==0)process.exit(result.status||1)
+const result=spawnSync(process.execPath,[cli,'add',platform],{stdio:'inherit',env:{...process.env,YASHILUYIM_MOBILE_MODE:mode}})
+if(result.status!==0)process.exit(result.status??1)
+if(mode==='public'){console.log('Public native project prepared without camera/login plugins. Signing and device verification are still required.');process.exit(0)}
 if(platform==='android') {
   const file='android/app/src/main/AndroidManifest.xml'
   let xml=await readFile(file,'utf8')

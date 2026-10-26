@@ -11,6 +11,7 @@ import { dataQuery } from './data.js'
 import { storageService } from './storage.js'
 import { checkout, ticketAction, checkin, replyToSuggestion } from './tickets.js'
 import { enqueue, escapeHtml, telegramClient } from './jobs.js'
+import { readPublicContent } from './public-content.js'
 
 export async function buildApp({ db, config, telegram=telegramClient(config), logger=false }) {
   const app=Fastify({ logger, bodyLimit: 1024*1024, trustProxy: config.production ? 1 : false, logController:new LogController({disableRequestLogging:true}) })
@@ -50,6 +51,10 @@ export async function buildApp({ db, config, telegram=telegramClient(config), lo
   }
   const loginLimit={rateLimit:{max:10,timeWindow:'1 minute'}}
   app.get('/api/health',async()=>({ok:true,service:'yashil-uyim'}))
+  app.get('/api/public/content',async(_request,reply)=>{
+    reply.header('Cache-Control','public, max-age=60').header('X-Content-Type-Options','nosniff')
+    return readPublicContent(db,storage)
+  })
   app.get('/api/ready',async()=>{check((await db.query("SELECT name FROM schema_migrations WHERE name='001_initial.sql'")).rows.length,'Schema is not ready',503);return {ok:true}})
   app.post('/api/auth/start',{config:loginLimit},async request=>auth.start(request.body?.verifier))
   app.post('/api/auth/verify',{config:loginLimit},async(request,reply)=>sessionResponse(reply,await auth.verify(request.body||{}),request.body?.client))

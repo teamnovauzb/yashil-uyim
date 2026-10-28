@@ -12,7 +12,15 @@ The build requires the original upload key and refuses to create a replacement k
 
 Version 1's `releases/google-play-1.0.0/` and its ZIPs stay frozen. New native build output may replace the generated ignored `android/app/build/` files, but it cannot overwrite the preserved submitted package through this pipeline.
 
-## Local QA only
+## Icon correction for resubmission
+
+On 28 October 2026, the publisher supplied Google's rejection evidence: version 1 installs the older eco-tree icon while the store listing uses the globe-house logo. The publisher requested a replacement AAB now, retaining current public Supabase data. Build it with `npm run android:release:supabase`, then package its listings/assets with `node scripts/package-next-release.mjs`. This signed `1.0.1 (2)` release goes to `releases/google-play-1.0.1/`. Use its `graphics/app-icon-512.png` consistently across every Play listing. The installed icon uses the same artwork. This is independent of VPS deployment and supersedes the earlier plan to reserve version 2 for VPS.
+
+After version code 2 is uploaded, increase `next-release.json` to a new, higher version code before building any VPS update. Do not overwrite or reuse the submitted version code. The default `android:release` command still requires a live VPS endpoint; only the explicit `android:release:supabase` command creates the corrective store build using current Supabase.
+
+The corrective build completed locally on 28 October 2026. Bundle/APK signatures, original upload certificate, API 36 identity, guest-only assets and embedded exact R8 mapping passed. Decoded pixel comparisons verified all 15 bundled launcher PNGs plus the 512px store icon against the supplied globe-house logo. Public read-only Supabase requests returned 7 programs, 4 news items and 12 gallery items. The signed APK was installed on the dedicated API 37 emulator; the launcher logo and guest program screen were visually checked. Further current-run navigation was inconclusive because the emulator terminated the WebView under memory pressure. Earlier native QA is included with its matching identical APK SHA, clearly separated from this run; no physical device was tested. All 30 version-1 archive files and 88 original Mini App baseline files remained unchanged. The package ZIP includes the new AAB, APK, exact mapping, graphics, listing text, screenshots and verification reports. Nothing was uploaded or deployed.
+
+## Local QA command
 
 ```powershell
 npm run android:qa
@@ -31,7 +39,7 @@ npm run android:release
 
 The command requires a real HTTPS origin, fetches `/api/public/content` without credentials and checks its public contract before building. Without that address, it stops before making build changes. The new binary then compiles with source `api`, clears the direct Supabase URL/key from build-time variables, keeps the same guest-only screens and writes to `releases/google-play-1.0.1/`. No endpoint, domain, database migration or privacy hosting is invented here.
 
-Keep the current review in place. Later upload the new higher-version AAB using the usual Play review process. The matching mapping is already embedded in its AAB; retain the sidecar for diagnostics. Never use a mapping file from a different AAB, even if its version name looks similar. The final VPS build, actual VPS connectivity, physical-device/internal-track tests and Play upload remain later work.
+The version-1 review was subsequently rejected for the icon mismatch described above. Submit the Supabase correction with code 2; use a higher code for a later VPS release. The matching mapping is already embedded in its AAB; retain the sidecar for diagnostics. Never use a mapping file from a different AAB, even if its version name looks similar. The final VPS build, actual VPS connectivity, physical-device/internal-track tests and Play upload remain later work.
 
 ## Verification on 27 October 2026
 

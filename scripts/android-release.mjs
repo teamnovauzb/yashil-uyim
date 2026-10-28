@@ -6,7 +6,7 @@ import path from 'node:path'
 if(process.platform!=='win32')throw new Error('This local release helper uses Windows DPAPI and the configured Android Studio JDK')
 const root=path.resolve(import.meta.dirname,'..'),android=path.join(root,'android')
 const profile=process.env.YASHILUYIM_NEXT_PROFILE,versionName=process.env.YASHILUYIM_VERSION_NAME,versionCode=Number(process.env.YASHILUYIM_VERSION_CODE)
-if(!['qa','vps'].includes(profile)||!/^\d+\.\d+\.\d+$/.test(versionName||'')||!Number.isInteger(versionCode)||versionCode<2)throw new Error('Use npm run android:release (VPS) or npm run android:qa (local QA). Version 1 is frozen.')
+if(!['qa','vps','supabase'].includes(profile)||!/^\d+\.\d+\.\d+$/.test(versionName||'')||!Number.isInteger(versionCode)||versionCode<2)throw new Error('Use an android:release command or android:qa. Version 1 is frozen.')
 const out=path.resolve(process.env.YASHILUYIM_RELEASE_DIR||'')
 if(!out.startsWith(root+path.sep)||out===path.join(root,'releases/google-play-1.0.0'))throw new Error('Use a separate next-release output directory')
 const java=process.env.JAVA_HOME||'C:/Program Files/Android/Android Studio/jbr'

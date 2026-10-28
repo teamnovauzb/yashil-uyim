@@ -13,6 +13,7 @@
     "check:public-bundle": "node scripts/check-public-bundle.mjs",
     "store:assets": "node scripts/store-assets.mjs",
     "android:release": "node scripts/android-next-release.mjs",
+    "android:release:supabase": "node scripts/android-next-release.mjs --supabase-release",
     "android:qa": "node scripts/android-next-release.mjs --qa",
     "test:release": "node --test test/release/build-guard.test.js",
     "test:supabase": "playwright test --config test/supabase/playwright.config.js",

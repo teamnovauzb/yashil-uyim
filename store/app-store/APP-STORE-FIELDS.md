@@ -1,5 +1,7 @@
 # App Store Connect fields
 
+**Actual record update, 29 October 2026:** Apple ID `6828467813`, SKU `yashiluyim-ios`, primary locale **English (U.S.) / en-US**. Use `listing.en-US.json`; the earlier en-GB suggestion below is historical. The signed build, category, public policy, reviewer instructions/contact and current unresolved fields are recorded in `store/release-status.json` and `docs/PROJECT_HANDOFF.md`. The publisher confirmed the app is free and chose a general audience without Apple's Kids category; Apple returned `FOUR_PLUS` from the completed content questionnaire. This is not a Google target-audience selection.
+
 This is a preparation worksheet, not a record of an upload or approved answers.
 
 | Field | Value |
@@ -7,10 +9,10 @@ This is a preparation worksheet, not a record of an upload or approved answers.
 | Platform | iOS |
 | Name | Yashil Uyim |
 | Bundle ID | uz.teamnova.yashiluyim |
-| SKU | yashiluyim-ios (internal suggestion; choose an unused SKU) |
+| SKU | yashiluyim-ios (actual created record) |
 | Initial version / build | 1.0.0 / 1 |
 | Devices | iPhone, iOS 15+; no iPad-specific target in this first package |
-| Primary language | English (U.K.) / en-GB |
+| Primary language | English (U.S.) / en-US (actual record) |
 | Interface / content | Primarily Uzbek; stated in description and reviewer notes |
 | Primary category | Lifestyle (suggestion; confirm in Connect) |
 | Price | Free |

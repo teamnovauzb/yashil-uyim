@@ -65,7 +65,7 @@ const policy=(await readFile(path.join(root,'store/google-play/PRIVACY-POLICY-EN
 await writeFile(path.join(handoff,'PRIVACY-POLICY-EN.txt'),policy)
 const uz=JSON.parse(await readFile(path.join(root,'store/google-play/listing.uz.json'),'utf8'))
 await writeFile(path.join(handoff,'store/app-store/UZBEK-REFERENCE.txt'),`Uzbek text reference; not a claim that App Store Connect offers an uz locale.\n\n${uz.title}\n\n${uz.shortDescription}\n\n${uz.fullDescription}\n`)
-const listing=JSON.parse(await readFile(path.join(root,'store/app-store/listing.en-GB.json'),'utf8'))
+const listing=JSON.parse(await readFile(path.join(root,`store/app-store/listing.${release.primaryLocale}.json`),'utf8'))
 for(const [key,limit]of [['name',30],['subtitle',30],['promotionalText',170],['keywords',100],['description',4000],['reviewNotes',4000]]) {
   assert.ok([...listing[key]].length<=limit,`App Store ${key} too long`)
   await writeFile(path.join(handoff,'store/app-store',`${key}.txt`),listing[key]+'\n')

@@ -1,5 +1,7 @@
 # Yashil Uyim
 
+Start release work with [AGENTS.md](AGENTS.md), [the current handoff](docs/PROJECT_HANDOFF.md), [the standing store workflow](docs/STORE_RELEASE_WORKFLOW.md) and [machine-readable release status](store/release-status.json). These preserve the original Mini App, identify the separate mobile checkout, and distinguish built/uploaded/processed/review states. The user uploads first-release images and submits the initial review; tag-driven automatic review submission is authorised only after the initial release is established.
+
 React/Vite festival website and Telegram Mini App. The existing deployment continues using Supabase and the Vercel `api/` handlers by default.
 
 An opt-in PostgreSQL/VPS backend and Capacitor mobile preparation are documented in [docs/VPS_PREPARATION.md](docs/VPS_PREPARATION.md). This is isolated local source work; there is no automatic deployment or bot/webhook registration. The existing Mini App must remain on its current deployment through the upcoming event.

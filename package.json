@@ -17,6 +17,7 @@
     "android:qa": "node scripts/android-next-release.mjs --qa",
     "ios:prepare": "node scripts/ios-prepare.mjs",
     "ios:package": "node scripts/ios-package.mjs",
+    "ios:eas:prepare": "node scripts/ios-eas-prepare.mjs",
     "ios:archive": "node scripts/ios-archive.mjs",
     "ios:simulator": "node scripts/ios-simulator.mjs build",
     "ios:capture": "node scripts/ios-simulator.mjs capture",

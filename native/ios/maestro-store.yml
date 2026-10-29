@@ -1,0 +1,32 @@
+appId: uz.teamnova.yashiluyim
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: Dastur bilan tanishish
+    timeout: 60000
+- takeScreenshot: 01-home
+- tapOn: Dastur
+- assertVisible: Festival dasturi
+- waitForAnimationToEnd
+- takeScreenshot: 02-program
+- tapOn:
+    text: '.*: saqlash'
+    index: 0
+- tapOn: 'Saqlangan \(1\)'
+- extendedWaitUntil:
+    notVisible: Tadbir shu qurilmada saqlandi.
+    timeout: 15000
+- waitForAnimationToEnd
+- takeScreenshot: 03-saved
+- tapOn: Yangiliklar
+- waitForAnimationToEnd
+- takeScreenshot: 04-news
+- tapOn: Galereya
+- assertVisible: Festival galereyasi
+- waitForAnimationToEnd
+- takeScreenshot: 05-gallery
+- tapOn: Manzil
+- assertVisible: Manzil va vaqt
+- waitForAnimationToEnd
+- takeScreenshot: 06-venue

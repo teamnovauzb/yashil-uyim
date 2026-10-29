@@ -1,0 +1,12 @@
+{
+  "owner": "polomax",
+  "slug": "yashil-uyim",
+  "projectId": "8b5efc38-b70d-498b-860e-d420f8b3ff55",
+  "dashboardUrl": "https://expo.dev/accounts/polomax/projects/yashil-uyim",
+  "appleTeamId": "HB4NQBS6LM",
+  "bundleId": "uz.teamnova.yashiluyim",
+  "ascAppId": "6828467813",
+  "primaryLocale": "en-US",
+  "serverWorkspace": "/root/app-releases/yashiluyim-ios-20261029",
+  "purpose": "Independent Capacitor native iOS cloud build; no backend deployment or Apple submission"
+}

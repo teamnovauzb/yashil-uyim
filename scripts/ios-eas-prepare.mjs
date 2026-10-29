@@ -1,0 +1,41 @@
+import { readFile, writeFile, mkdir, cp, access } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
+import path from 'node:path'
+const root=path.resolve(import.meta.dirname,'..'),release=JSON.parse(await readFile(path.join(root,'store/app-store/release.json'),'utf8'))
+const handoff=path.join(root,`releases/app-store-${release.version}/mac-project`),out=path.join(root,`.local/eas-yashiluyim-ios-${release.version}-${release.build}`)
+await access(path.join(handoff,'READINESS.json'))
+if(existsSync(out))throw new Error('EAS source snapshot already exists; inspect it rather than overwriting linked project settings')
+await mkdir(out,{recursive:true})
+// The native project is flattened only in this isolated EAS snapshot to match its native iOS discovery.
+await cp(path.join(handoff,'ios/App'),path.join(out,'ios'),{recursive:true})
+await cp(path.join(handoff,'ios/debug.xcconfig'),path.join(out,'ios/debug.xcconfig'))
+for(const plugin of ['app','browser'])await cp(path.join(handoff,'node_modules/@capacitor',plugin),path.join(out,'vendor/@capacitor',plugin),{recursive:true})
+const pbxPath=path.join(out,'ios/App.xcodeproj/project.pbxproj')
+let pbx=await readFile(pbxPath,'utf8')
+pbx=pbx.replace('path = ../debug.xcconfig;','path = debug.xcconfig;').replaceAll('CODE_SIGN_STYLE = Automatic;','CODE_SIGN_STYLE = Automatic;\n\t\t\t\tDEVELOPMENT_TEAM = HB4NQBS6LM;')
+await writeFile(pbxPath,pbx)
+const swiftPath=path.join(out,'ios/CapApp-SPM/Package.swift')
+await writeFile(swiftPath,(await readFile(swiftPath,'utf8')).replaceAll('../../../node_modules/','../../vendor/'))
+const schemePath=path.join(out,'ios/App.xcodeproj/xcshareddata/xcschemes/App.xcscheme')
+await access(schemePath)
+await cp(path.join(handoff,'graphics'),path.join(out,'graphics'),{recursive:true})
+await mkdir(path.join(out,'.eas/build'),{recursive:true})
+await cp(path.join(root,'native/ios/eas-production.yml'),path.join(out,'.eas/build/ios-store.yml'))
+await cp(path.join(root,'native/ios/eas-simulator.yml'),path.join(out,'.eas/build/ios-simulator.yml'))
+await cp(path.join(root,'native/ios/cloud-simulator.cjs'),path.join(out,'cloud-simulator.cjs'))
+await mkdir(path.join(out,'maestro'),{recursive:true})
+await cp(path.join(root,'native/ios/maestro-store.yml'),path.join(out,'maestro/ios-store.yml'))
+await writeFile(path.join(out,'package.json'),JSON.stringify({name:'yashil-uyim-native-ios',private:true,version:release.version},null,2)+'\n')
+await writeFile(path.join(out,'package-lock.json'),JSON.stringify({name:'yashil-uyim-native-ios',version:release.version,lockfileVersion:3,requires:true,packages:{'':{name:'yashil-uyim-native-ios',version:release.version}}},null,2)+'\n')
+const project=JSON.parse(await readFile(path.join(root,'store/app-store/eas-project.json'),'utf8'))
+await writeFile(path.join(out,'app.json'),JSON.stringify({expo:{name:release.displayName,slug:project.slug,owner:project.owner,version:release.version,icon:'./graphics/app-icon-1024.png',ios:{bundleIdentifier:release.bundleId,appleTeamId:project.appleTeamId,buildNumber:release.build,supportsTablet:false},extra:{eas:{projectId:project.projectId}}}},null,2)+'\n')
+await writeFile(path.join(out,'eas.json'),JSON.stringify({cli:{version:'>=27.1.0',appVersionSource:'local'},build:{production:{distribution:'store',ios:{config:'ios-store.yml',image:'latest',scheme:'App',buildConfiguration:'Release'}},simulator:{distribution:'internal',ios:{simulator:true,config:'ios-simulator.yml',image:'latest',scheme:'App',buildConfiguration:'Release',applicationArchivePath:'artifacts/simulator-app.tar.gz'}}}},null,2)+'\n')
+// Upload is a separate, explicitly invoked step. Neither build profile auto-submits.
+const eas=JSON.parse(await readFile(path.join(out,'eas.json'),'utf8'))
+eas.submit={production:{ios:{ascAppId:project.ascAppId,ascApiKeyPath:'/var/www/keys/AuthKey_LB3ZYSJ6AS.p8',ascApiKeyId:'LB3ZYSJ6AS',ascApiKeyIssuerId:'322d1613-6f53-4df8-8c4d-e49fb345b2eb'}}}
+await writeFile(path.join(out,'eas.json'),JSON.stringify(eas,null,2)+'\n')
+await writeFile(path.join(out,'.easignore'),'build-output/\nbuild-simulator/\nartifacts/\n.eas-results/\ncheck-build.cjs\n*.ipa\n*.p8\n*.p12\n*.mobileprovision\n.env*\ncredentials.json\n')
+const revision=spawnSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'})
+await writeFile(path.join(out,'SOURCE.json'),JSON.stringify({sourceCommit:revision.stdout?.trim(),bundleId:release.bundleId,version:release.version,build:release.build,framework:'Capacitor, not converted to React Native/Expo',cloudOwner:'polomax',preparedAt:new Date().toISOString(),source:'current public Supabase'},null,2)+'\n')
+console.log(`Prepared isolated native EAS source snapshot: ${out}. No project, credentials, build or upload has been created by this helper.`)

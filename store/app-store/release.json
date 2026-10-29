@@ -7,5 +7,5 @@
   "devices": "iPhone",
   "source": "supabase",
   "logo": "assets/mobile/logo.jpg",
-  "primaryLocale": "en-GB"
+  "primaryLocale": "en-US"
 }

@@ -1,0 +1,17 @@
+build:
+  name: Yashil Uyim native iPhone simulator validation and screenshots
+  steps:
+    - eas/checkout
+    - eas/install_maestro
+    - run:
+        name: Compile the guest app and boot a large-display iPhone
+        command: node cloud-simulator.cjs
+    - run:
+        name: Exercise actual iOS screens and capture store screenshots
+        command: maestro --device "$IOS_SIMULATOR_UDID" test --test-output-dir artifacts/maestro maestro/ios-store.yml
+    - eas/find_and_upload_build_artifacts
+    - eas/upload_artifact:
+        if: ${ always() }
+        inputs:
+          type: build-artifact
+          path: artifacts

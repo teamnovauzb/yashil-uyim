@@ -1,5 +1,7 @@
 # iOS guest release
 
+**Current state, 29 October 2026:** the publisher subsequently authorised the POLOMAX helper/EAS cloud route. The signed store IPA and native iPhone Simulator builds have now completed successfully. Apple record `6828467813` exists with primary locale **en-US**. See `docs/PROJECT_HANDOFF.md` and `store/release-status.json` for the actual build/upload/processing states; the Windows-only handoff described below is the earlier preparation stage. Initial screenshots and initial App Review remain publisher actions. Never infer upload completion from a scheduled EAS submission.
+
 The first iOS release is prepared separately in `D:\Projects\teamnovauzb\yashiluyim-vps-ready` on `codex/vps-ready`. It retains the guest-only program/search/local bookmarks, announcements, gallery, venue, offline text and privacy screens. It uses the existing public Supabase REST source, with no accounts, registration, payments or private Mini App routes. No server or original Mini App rebuild/deployment is needed. Existing submitted Android artifacts stay frozen.
 
 ## Prepared identity and platform
@@ -59,6 +61,6 @@ This validates Xcode/SDK, resolves packages, archives the App scheme, checks bun
 
 Source preparation on Windows does not compile Swift, run Interface Builder/asset compilation, resolve the Apple binaries, sign an IPA or test an iPhone. `PREPARATION.json` preserves these as false until actual Mac work is performed. Do not describe the ZIP as a signed iOS app. The external privacy/support URLs, copyright owner, review contact, Apple team, real iOS screenshots and processed uploaded build must be completed in App Store Connect. The publisher can reuse the already published accurate policy URL.
 
-English (U.K.) metadata is supplied because Apple's published App Store localization list does not include Uzbek. Its description explicitly states that the interface is primarily Uzbek. Uzbek reference copy is also provided without claiming an unsupported Connect localization.
+The actual Apple record uses English (U.S.); use `listing.en-US.json`. Its description explicitly states that the interface is primarily Uzbek. The earlier en-GB copy is historical; Uzbek reference copy does not claim an unsupported Connect localization.
 
 For a later VPS migration, first deploy and verify the public content/media endpoint, then build a new higher iOS build/version against it and update privacy answers if practices change. The current package intentionally preserves Supabase to match the Android release. See `store/app-store/APP-STORE-FIELDS.md` for supported fields, review notes and official links. App Review approval is not established by local preparation.

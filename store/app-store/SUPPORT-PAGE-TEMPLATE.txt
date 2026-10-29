@@ -1,0 +1,17 @@
+Yashil Uyim — App Support / Ilova yordami
+
+Yashil Uyim is a free festival companion for iPhone and Android. Browse public festival programs, announcements, gallery and venue details without registration. The interface and festival content are primarily in Uzbek.
+
+Support / Yordam
+Email: [REPLACE WITH YOUR PUBLIC SUPPORT EMAIL]
+Festival organiser: [REPLACE WITH THE LEGAL ORGANISER NAME]
+Festival social page: https://www.instagram.com/yashil_uyim
+Privacy policy: [REPLACE WITH YOUR PUBLISHED PUBLIC HTTPS POLICY URL]
+
+To report an issue, include the app version, your device model, system version and a short explanation. Do not send passwords, payment information or Telegram verification codes. This guest app has no sign-in or payment screen.
+
+For fresh information, connect to the internet and tap the refresh button. Bookmarks and previously loaded public text remain on your device. Images, videos and external maps may require internet.
+
+Ilovada muammo bo‘lsa, ilova talqini, qurilma modeli va muammoning qisqa tavsifini yuqoridagi manzilga yuboring. Yangilangan ma’lumotlar uchun internetga ulanib, yangilash tugmasini bosing. Ilovada ro‘yxatdan o‘tish yoki to‘lov qilish talab qilinmaydi.
+
+Publish this page with public read access after replacing every bracketed field. The template itself is not a hosted support URL.

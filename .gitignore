@@ -36,8 +36,10 @@ uploads/
 backups/
 dist-vps/
 dist-public/
-android/
-ios/
+/android/
+/ios/
 releases/
+build-output/
+screenshots/ios-*/
 *.jks
 *.keystore

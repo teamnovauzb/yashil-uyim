@@ -1,0 +1,11 @@
+{
+  "bundleId": "uz.teamnova.yashiluyim",
+  "displayName": "Yashil Uyim",
+  "version": "1.0.0",
+  "build": "1",
+  "minimumIOS": "15.0",
+  "devices": "iPhone",
+  "source": "supabase",
+  "logo": "assets/mobile/logo.jpg",
+  "primaryLocale": "en-GB"
+}

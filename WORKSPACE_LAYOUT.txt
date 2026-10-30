@@ -1,0 +1,5 @@
+30 October 2026: local workspace consolidation
+
+Original mini-app source: D:/Projects/teamnovauzb/yashiluyim
+Mobile/VPS preparation: D:/Projects/teamnovauzb/yashiluyim/.worktrees/mobile-vps
+Branch codex/vps-ready was moved with git worktree move; all env/signing material, signed app files and release evidence were retained byte-for-byte. The former sibling path yashiluyim-vps-ready is retired. Future outputs remain under this project, including android/app/build and releases. This does not change app versions, store review state, API targets, remote server paths or publication permissions.

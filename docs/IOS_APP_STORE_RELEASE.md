@@ -2,7 +2,7 @@
 
 **Current state, 29 October 2026:** the publisher subsequently authorised the POLOMAX helper/EAS cloud route. The signed store IPA and native iPhone Simulator builds have now completed successfully. Apple record `6828467813` exists with primary locale **en-US**. See `docs/PROJECT_HANDOFF.md` and `store/release-status.json` for the actual build/upload/processing states; the Windows-only handoff described below is the earlier preparation stage. Initial screenshots and initial App Review remain publisher actions. Never infer upload completion from a scheduled EAS submission.
 
-The first iOS release is prepared separately in `D:\Projects\teamnovauzb\yashiluyim-vps-ready` on `codex/vps-ready`. It retains the guest-only program/search/local bookmarks, announcements, gallery, venue, offline text and privacy screens. It uses the existing public Supabase REST source, with no accounts, registration, payments or private Mini App routes. No server or original Mini App rebuild/deployment is needed. Existing submitted Android artifacts stay frozen.
+The first iOS release is prepared separately in `D:\Projects\teamnovauzb\yashiluyim\.worktrees\mobile-vps` on `codex/vps-ready`. It retains the guest-only program/search/local bookmarks, announcements, gallery, venue, offline text and privacy screens. It uses the existing public Supabase REST source, with no accounts, registration, payments or private Mini App routes. No server or original Mini App rebuild/deployment is needed. Existing submitted Android artifacts stay frozen.
 
 ## Prepared identity and platform
 

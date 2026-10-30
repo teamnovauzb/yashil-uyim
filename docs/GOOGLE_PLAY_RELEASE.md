@@ -2,7 +2,7 @@
 
 **Version 1 is now reported submitted for review.** Preserve this package as an archive. The build commands below record the original preparation; use [NEXT_ANDROID_RELEASE.md](NEXT_ANDROID_RELEASE.md) for the next R8-enabled version, actual supplied logo and later VPS configuration. The current `android:release` command intentionally targets the next VPS version and requires its deployed API address.
 
-Prepared locally on 26–27 October 2026 in `D:/Projects/teamnovauzb/yashiluyim-vps-ready`, branch `codex/vps-ready`. This work follows the user's later authorization to build the guest AAB. The original Telegram checkout, existing `dist/`, deployment, bot and production database remain unchanged.
+Prepared locally on 26–27 October 2026 in `D:/Projects/teamnovauzb/yashiluyim/.worktrees/mobile-vps`, branch `codex/vps-ready`. This work follows the user's later authorization to build the guest AAB. The original Telegram checkout, existing `dist/`, deployment, bot and production database remain unchanged.
 
 ## Selected release behavior
 

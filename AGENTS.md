@@ -5,7 +5,7 @@ Read this file and the release documentation before app, backend or store work.
 ## Choose the correct checkout
 
 - The original working Telegram Mini App is `D:\Projects\teamnovauzb\yashiluyim`, normally on `main`. Preserve its source, built assets, Supabase data and current deployment. Do not build, push or deploy it merely to release mobile apps.
-- Mobile/VPS preparation is isolated in `D:\Projects\teamnovauzb\yashiluyim-vps-ready`, branch `codex/vps-ready`. Use that directory explicitly. In the original checkout these release docs may exist only in the isolated checkout: read the absolute paths there.
+- Mobile/VPS preparation is isolated in `D:\Projects\teamnovauzb\yashiluyim\.worktrees\mobile-vps`, branch `codex/vps-ready`. Use that directory explicitly. In the original checkout these release docs may exist only in the isolated checkout: read the absolute paths there.
 - Read `docs/PROJECT_HANDOFF.md`, `docs/STORE_RELEASE_WORKFLOW.md`, `docs/IOS_APP_STORE_RELEASE.md`, `docs/NEXT_ANDROID_RELEASE.md` and `store/release-status.json` in the isolated checkout. Then inspect Git state and actual store state; the recorded results are dated evidence.
 - The reusable server/account guide is `D:\Projects\teamnovauzb\polomax\kids\APP_RELEASE_GUIDE.md`. It is an infrastructure reference. Yashil Uyim remains Capacitor; do not convert it to Expo/React Native or copy Kids app IDs, store declarations, artwork or Android keys.
 

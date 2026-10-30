@@ -1,6 +1,6 @@
 # Local VPS and mobile preparation
 
-This work is on `codex/vps-ready`, based on `c56c6c6`, in the sibling checkout `D:/Projects/teamnovauzb/yashiluyim-vps-ready`. The original `yashiluyim` checkout remains on `main`. Keeping this work outside the original directory also avoids changing its Tailwind/tooling file scanning. Nothing here is pushed, deployed, connected to the existing Supabase project, or registered with Telegram. No production or native application bundle was built. Existing `dist`, `.env`, `.vercel`, `api/`, and Supabase SQL in the original checkout are untouched.
+This work is on `codex/vps-ready`, based on `c56c6c6`, in the sibling checkout `D:/Projects/teamnovauzb/yashiluyim/.worktrees/mobile-vps`. The original `yashiluyim` checkout remains on `main`. Keeping this work outside the original directory also avoids changing its Tailwind/tooling file scanning. Nothing here is pushed, deployed, connected to the existing Supabase project, or registered with Telegram. No production or native application bundle was built. Existing `dist`, `.env`, `.vercel`, `api/`, and Supabase SQL in the original checkout are untouched.
 
 The upcoming festival should continue using the existing deployment. Schedule the eventual cutover separately, preferably after the event. Committing this branch locally does not switch the application or repair the live deployment's existing security issues.
 

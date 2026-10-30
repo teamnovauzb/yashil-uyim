@@ -4,7 +4,7 @@ Updated 29 October 2026, Asia/Tashkent. Read `AGENTS.md` and `docs/STORE_RELEASE
 
 ## Implemented app and protected original
 
-The original React/Vite Telegram Mini App is `D:\Projects\teamnovauzb\yashiluyim` on `main`. Its Supabase/Vercel deployment must remain working for the upcoming event. The isolated checkout `D:\Projects\teamnovauzb\yashiluyim-vps-ready`, `codex/vps-ready`, contains opt-in VPS/PostgreSQL 18 work and Capacitor guest mobile releases. Do not rebuild/deploy the original to make a mobile release.
+The original React/Vite Telegram Mini App is `D:\Projects\teamnovauzb\yashiluyim` on `main`. Its Supabase/Vercel deployment must remain working for the upcoming event. The isolated checkout `D:\Projects\teamnovauzb\yashiluyim\.worktrees\mobile-vps`, `codex/vps-ready`, contains opt-in VPS/PostgreSQL 18 work and Capacitor guest mobile releases. Do not rebuild/deploy the original to make a mobile release.
 
 The guest app uses actual public Supabase REST data (programs, news, gallery, five festival settings), without Telegram SDK/auth, accounts, registration, tickets, payments, admin/private routes or writes. It includes search, local saved activities, cached/offline public text, media gallery, venue/map and in-app privacy. Latest public source preflight returned 7 program, 4 news and 12 gallery items; these counts are dated, not invariants. A later VPS migration requires a higher-version mobile update. Hetzner application-backend deployment is still deferred.
 
